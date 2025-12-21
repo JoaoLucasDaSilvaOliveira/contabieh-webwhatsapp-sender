@@ -25,18 +25,18 @@
             accept=".csv"
         />
         <p>ou</p>
-        <fieldset class="w-100 border-2 border-gray-300 rounded-lg p-2 focus-within:border-[#F9B02E] transition-all duration-200 overflow-hidden">
-            <legend class="px-2 text-sm font-medium text-gray-600">
-                Digite os números (separados por vírgula):
-            </legend>
-            <textarea 
-                class="w-full p-3 outline-none transition-all duration-200 
-                    placeholder:text-gray-400 field-sizing-content resize-none 
-                    min-h-[100px] block break-all overflow-hidden max-h-40" 
-                name="numbers" 
-                id="numbers-input" 
-                placeholder="Ex.: 5551991620409, 5551963215478"
-            />
-        </fieldset>
+            <fieldset class="w-100 border-2 border-gray-300 rounded-lg p-2 focus-within:border-[#F9B02E] transition-all duration-200 overflow-hidden">
+                <legend class="px-2 text-sm font-medium text-gray-600">
+                    Digite os números (separados por vírgula):
+                </legend>
+                <textarea 
+                    class="w-full p-3 outline-none transition-all duration-200 
+                        placeholder:text-gray-400 field-sizing-content resize-none 
+                        min-h-25 block break-all overflow-hidden max-h-40" 
+                    name="numbers"
+                    id="numbers-input" 
+                    placeholder="Ex.: 5551991620409, 5551963215478"
+                />
+            </fieldset>
     </div>
 </template>

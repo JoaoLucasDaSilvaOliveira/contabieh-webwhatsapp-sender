@@ -6,7 +6,7 @@ import StepAppendArquivo from "@/components/StepAppendArquivo.vue";
 import StepResultados from "@/components/StepResultados.vue";
 import StepSubmit from "@/components/StepSubmit.vue";
 
-interface Step {
+export interface Step {
     position: number;
     label: string;
     content: Component;
@@ -29,21 +29,35 @@ export const useMultiStepFormStore = defineStore("multiStepForm", () => {
     const nextStep = ()=>{
         const nextIndex = currentStep.value.position + 1;
         if (nextIndex <= lastStep){
+            saveStep(nextIndex.toString());
             currentStep.value = steps[nextIndex]!;
-
         }
     }
 
     const previousStep = ()=>{
         const previousIndex = currentStep.value.position - 1;
         if (previousIndex >= firstStep){
+            saveStep(previousIndex.toString());
             currentStep.value = steps[previousIndex]!;
         }
     }
 
     const backToBeginning = () =>{
+        saveStep(firstStep.toString())
         currentStep.value = steps[firstStep]!;
     }
 
-  return { currentStep, steps , nextStep, previousStep, backToBeginning};
+    const saveStep = (stepValue: string)=>{
+        localStorage.setItem("currentStep", stepValue)
+    }
+
+    const checkStep = () =>{
+        const savedStep = localStorage.getItem('currentStep');
+        if (savedStep === null){
+            currentStep.value =  steps[0]!;
+        }
+        currentStep.value =  steps[parseInt(savedStep!)]!
+    }
+
+  return { currentStep, steps , nextStep, previousStep, backToBeginning, checkStep};
 });

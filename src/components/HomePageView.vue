@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from "vue";
+  import { onMounted, ref } from "vue";
   import hamburguer from "@/assets/imgs/hamburguer.png";
   import logo from "@/assets/imgs/logo-contabiehl.png";
   import { useMultiStepFormStore } from "@/stores/multiStepForm";
@@ -8,9 +8,21 @@
   const multiStepForm = useMultiStepFormStore();
 
   const toggleAside = () => {
-    console.log(isAsideOpen.value);
     isAsideOpen.value = !isAsideOpen.value;
+    localStorage.setItem("aside-state", String(isAsideOpen.value))
   };
+
+  onMounted(()=>{
+    const asideState = localStorage.getItem("aside-state");
+    if (asideState === null){
+      //salva estado atual caso não tenha estado ainda
+      localStorage.setItem("aside-state", String(isAsideOpen.value))
+    } else {
+      //caso ja tenha estado, o usamos
+      isAsideOpen.value = asideState === 'true';
+    }
+    multiStepForm.checkStep();
+  })
   
 </script>
 
