@@ -41,9 +41,9 @@ export const useMultiStepFormStore = defineStore("multiStepForm", () => {
         }
     }
 
-    const voltarAoInicio = () =>{
+    const backToBeginning = () =>{
         currentStep.value = steps[firstStep]!;
     }
 
-  return { currentStep, steps , nextStep, previousStep, voltarAoInicio};
+  return { currentStep, steps , nextStep, previousStep, backToBeginning};
 });

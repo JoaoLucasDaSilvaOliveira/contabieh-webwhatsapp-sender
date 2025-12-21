@@ -46,12 +46,12 @@
         <p>Enviador de mensagens em massa</p>
       </header>
 
-      <div class="main-content">
+      <div class="w-full max-w-2xl"> 
         <component :is="multiStepForm.currentStep.content"/>
-        <div>
-          <div v-if="multiStepForm.currentStep.position < 3">
-            <button @click="multiStepForm.previousStep()">Passo anterior</button>
-            <button @click="multiStepForm.nextStep()">Proximo passo</button>
+        <div class="mt-6 flex justify-center gap-4"> 
+          <div v-if="multiStepForm.currentStep.position < 3" class="flex gap-31 justify-center w-full absolute bottom-60">
+            <button @click="multiStepForm.previousStep()" class="px-4 py-2 bg-gray-200 rounded">Passo anterior</button>
+            <button @click="multiStepForm.nextStep()" class="px-4 py-2 bg-yellow-400 font-bold rounded">Proximo passo</button>
           </div>
         </div>
       </div>
