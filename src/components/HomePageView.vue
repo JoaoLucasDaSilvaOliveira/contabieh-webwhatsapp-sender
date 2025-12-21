@@ -1,0 +1,62 @@
+<script setup lang="ts">
+  import { ref } from "vue";
+  import hamburguer from "@/assets/imgs/hamburguer.png";
+  import logo from "@/assets/imgs/logo-contabiehl.png";
+  import { useMultiStepFormStore } from "@/stores/multiStepForm";
+  
+  const isAsideOpen = ref<boolean>(true);
+  const multiStepForm = useMultiStepFormStore();
+
+  const toggleAside = () => {
+    console.log(isAsideOpen.value);
+    isAsideOpen.value = !isAsideOpen.value;
+  };
+  
+</script>
+
+<template>
+  <div class="flex min-h-screen">
+    <aside
+      :class="[
+        'transition-all duration-500 ease-in-out overflow-hidden shrink-0 bg-gray-100 border-r flex flex-col items-center',
+        isAsideOpen ? 'w-80 p-4' : 'w-20 p-4',
+      ]"
+    >
+      <header class="w-full flex justify-between items-center mb-10">
+        <div v-show="isAsideOpen" class="transition-opacity duration-300">
+          <img :src="logo" class="w-48" />
+        </div>
+
+        <button class="cursor-pointer" @click="toggleAside">
+          <img :src="hamburguer" class="w-10" />
+        </button>
+      </header>
+
+      <div v-show="isAsideOpen" class="aside-content w-full space-y-4">
+        <p>Como usar?</p>
+        <p>Passo 1</p>
+        <p>Passo 2</p>
+        <p>Resumo dos envios</p>
+      </div>
+    </aside>
+
+    <main class="grow p-6 flex items-center flex-col">
+      <header class="mb-10 text-center">
+        <h1 class="text-2xl font-bold">Contabiehl WhatsApp</h1>
+        <p>Enviador de mensagens em massa</p>
+      </header>
+
+      <div class="main-content">
+        <component :is="multiStepForm.currentStep.content"/>
+        <div>
+          <div v-if="multiStepForm.currentStep.position < 3">
+            <button @click="multiStepForm.previousStep()">Passo anterior</button>
+            <button @click="multiStepForm.nextStep()">Proximo passo</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</template>
+
+<style></style>
