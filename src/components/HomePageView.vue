@@ -1,29 +1,32 @@
 <script setup lang="ts">
-  import { onMounted, ref } from "vue";
-  import hamburguer from "@/assets/imgs/hamburguer.png";
-  import logo from "@/assets/imgs/logo-contabiehl.png";
-  import { useMultiStepFormStore } from "@/stores/multiStepForm";
-  
-  const isAsideOpen = ref<boolean>(true);
-  const multiStepForm = useMultiStepFormStore();
+import { onMounted, ref } from "vue";
+import hamburguer from "@/assets/imgs/hamburguer.png";
+import logo from "@/assets/imgs/logo-contabiehl.png";
+import { useMultiStepFormStore } from "@/stores/multiStepForm";
+import {useGloblalLocalStorageHandler} from "@/stores/globalLocalStorageHandler";
+import { useMinorStates } from "@/stores/minorStates";
 
-  const toggleAside = () => {
-    isAsideOpen.value = !isAsideOpen.value;
-    localStorage.setItem("aside-state", String(isAsideOpen.value))
-  };
+const isAsideOpen = ref<boolean>(true);
+const multiStepForm = useMultiStepFormStore();
+const handleLocalStorage = useGloblalLocalStorageHandler();
+const handleMinorStates = useMinorStates()
 
-  onMounted(()=>{
-    const asideState = localStorage.getItem("aside-state");
-    if (asideState === null){
-      //salva estado atual caso não tenha estado ainda
-      localStorage.setItem("aside-state", String(isAsideOpen.value))
-    } else {
-      //caso ja tenha estado, o usamos
-      isAsideOpen.value = asideState === 'true';
-    }
-    multiStepForm.checkStep();
-  })
-  
+const toggleAside = () => {
+  isAsideOpen.value = !isAsideOpen.value;
+  handleMinorStates.saveMinorState("aside-state", isAsideOpen.value);
+};
+
+onMounted(() => {
+  const asideState = handleLocalStorage.getItem("aside-state");
+  if (asideState === null) {
+    //salva estado atual caso não tenha estado ainda
+    handleMinorStates.saveMinorState("aside-state", isAsideOpen.value);
+  } else {
+    //caso ja tenha estado, o usamos
+    isAsideOpen.value = asideState === "true";
+  }
+  multiStepForm.checkStep();
+});
 </script>
 
 <template>
@@ -52,18 +55,31 @@
       </div>
     </aside>
 
-    <main class="grow p-6 flex items-center flex-col">
+    <main class="grow p-6 flex items-center flex-col overflow-visible">
       <header class="mb-10 text-center">
         <h1 class="text-2xl font-bold">Contabiehl WhatsApp</h1>
         <p>Enviador de mensagens em massa</p>
       </header>
 
-      <div class="w-full max-w-2xl"> 
-        <component :is="multiStepForm.currentStep.content"/>
-        <div class="mt-6 flex justify-center gap-4"> 
-          <div v-if="multiStepForm.currentStep.position < 3" class="flex gap-31 justify-center w-full absolute bottom-60">
-            <button @click="multiStepForm.previousStep()" class="px-4 py-2 bg-gray-200 rounded">Passo anterior</button>
-            <button @click="multiStepForm.nextStep()" class="px-4 py-2 bg-yellow-400 font-bold rounded">Proximo passo</button>
+      <div class="w-full max-w-2xl overflow-visible">
+        <component :is="multiStepForm.currentStep.content" />
+        <div class="mt-6 flex justify-center gap-4">
+          <div
+            v-if="multiStepForm.currentStep.position < 3"
+            class="flex gap-31 justify-center w-full absolute bottom-60"
+          >
+            <button
+              @click="multiStepForm.previousStep()"
+              class="px-4 py-2 bg-gray-200 rounded"
+            >
+              Passo anterior
+            </button>
+            <button
+              @click="multiStepForm.nextStep()"
+              class="px-4 py-2 bg-yellow-400 font-bold rounded"
+            >
+              Proximo passo
+            </button>
           </div>
         </div>
       </div>

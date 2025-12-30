@@ -7,18 +7,22 @@
 
 <style>
   *{
-    overflow: hidden;
+    box-sizing: border-box;
   }
   input, button {
     cursor: pointer;
   }
 
-  body {
-    width: 100vw;
-    min-height: 100vh;
+  html {
+    overflow: hidden;
+  }
 
+  body {
+    width: 100%;
+    min-height: 100vh;
   }
   #app{
+    overflow: visible;
     width: 100%;
     height: 100%;
     padding: 30px;
