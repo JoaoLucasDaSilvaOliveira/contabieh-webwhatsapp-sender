@@ -33,13 +33,13 @@ onMounted(() => {
   <div class="flex min-h-screen">
     <aside
       :class="[
-        'transition-all duration-500 ease-in-out overflow-hidden shrink-0 bg-gray-100 border-r flex flex-col items-center',
-        isAsideOpen ? 'w-80 p-4' : 'w-20 p-4',
+        'transition-all duration-500 ease-in-out overflow-hidden shrink-0 bg-[rgb(25,25,112)] border-r flex flex-col items-center text-white',
+        isAsideOpen ? 'w-90 pl-10 pt-8 pr-4' : 'w-20 pl-5 pt-5',
       ]"
     >
       <header class="w-full flex justify-between items-center mb-10">
         <div v-show="isAsideOpen" class="transition-opacity duration-300">
-          <img :src="logo" class="w-48" />
+          <img :src="logo" class="w-48 drop-shadow-[0px_0px_10px_rgba(255,70,200)]" />
         </div>
 
         <button class="cursor-pointer" @click="toggleAside">
@@ -55,18 +55,18 @@ onMounted(() => {
       </div>
     </aside>
 
-    <main class="grow p-6 flex items-center flex-col overflow-visible">
-      <header class="mb-10 text-center">
-        <h1 class="text-2xl font-bold">Contabiehl WhatsApp</h1>
+    <main class="grow p-6 flex items-center flex-col overflow-visible mt-5">
+      <header class="mb-20 text-center">
+        <h1 class="text-2xl font-bold mb-1">Contabiehl WhatsApp</h1>
         <p>Enviador de mensagens em massa</p>
       </header>
 
       <div class="w-full max-w-2xl overflow-visible">
         <component :is="multiStepForm.currentStep.content" />
-        <div class="mt-6 flex justify-center gap-4">
+        <div class="mt-6 flex justify-center gap-4 relative">
           <div
             v-if="multiStepForm.currentStep.position < 3"
-            class="flex gap-31 justify-center w-full absolute bottom-60"
+            class="flex gap-31 justify-center w-full absolute top-20"
           >
             <button
               @click="multiStepForm.previousStep()"

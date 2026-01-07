@@ -53,7 +53,7 @@ export const useFileAppenderStore = defineStore("fileAppenderStore", () => {
    *
    *  USAR SOMENTE EM ONMOUNTED
    */
-  const getSavedArchives = () => {
+  const loadStore = () => {
     //importa os arquivos salvos
     const savedArchives = handleLocalStorage.getItem('global-files')
     if (savedArchives){ //checar se há arquivos salvos
@@ -66,5 +66,5 @@ export const useFileAppenderStore = defineStore("fileAppenderStore", () => {
     }
   }
 
-  return { filesAppended, appendFile, hasFileAppended, cleanAppendedFiles, getSavedArchives };
+  return { filesAppended, appendFile, hasFileAppended, cleanAppendedFiles, loadStore };
 });

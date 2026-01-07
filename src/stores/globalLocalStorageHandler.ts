@@ -60,15 +60,8 @@ export const useGloblalLocalStorageHandler = defineStore(
       localStorage.clear();
     };
 
-    const getAllItems = (): Array<itemObject> => {
-      //TODO: refatorar isso usando as stores
-      // const arrayItem: Array<itemObject> = [];
-      // keysUseds.value.forEach((key) => {
-      //   arrayItem.push({itemName: key, item: localStorage.getItem(key) ?? ''})
-      // })
-      // return arrayItem;
-    };
 
-    return { saveChanges, getItem, clearItem, clearAll, getAllItems };
+
+    return { saveChanges, getItem, clearItem, clearAll };
   }
 );

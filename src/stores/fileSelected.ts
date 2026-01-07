@@ -34,7 +34,7 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
     handleLocalStorage.clearItem(DEFAULT_FILE_NAME_KEY);
   };
 
-  const recuperateFileSaved = () => {
+  const loadStore = () => {
     const fileSaved = handleLocalStorage.getItem(DEFAULT_KEY);
     const fileName = handleLocalStorage.getItem(DEFAULT_FILE_NAME_KEY);
     if (fileSaved && fileName) {
@@ -47,6 +47,6 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
     fileSelected,
     handleFileChange,
     cleanSelectedFile,
-    recuperateFileSaved,
+    loadStore,
   };
 });
