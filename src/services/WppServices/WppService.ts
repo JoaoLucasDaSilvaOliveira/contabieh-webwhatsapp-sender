@@ -1,0 +1,88 @@
+import { useFileSelectedStore } from "@/stores/fileSelected";
+import { CsvReader } from "@/services/WppServices/CsvReader/CsvReaderImpl";
+import { useWppStatesStore } from "@/stores/wppStates";
+import { checkWppConnection } from "./WppConnectionChecker";
+import { wppPhoneChecker } from "./checkWppPhoneNumber";
+import { ref } from "vue";
+import type { ContatosEmCSV } from "./CsvReader/CsvReaderInterface";
+import { useFileAppenderStore } from "@/stores/fileAppender";
+import { sendFile } from "./WppFileSender";
+import { sendText } from "./WppTextSender";
+
+const fileSelectedStore = useFileSelectedStore();
+const wppStates = useWppStatesStore();
+const fileAppender = useFileAppenderStore();
+const contatos = ref <ContatosEmCSV[]>([])
+
+const startWppService = async () => {
+  //TODO:
+  //IMPLEMENTAÇÕES:
+  //1 - VALIDAR OS NÚMEROS E COLOCAR O @c.us
+  if (fileSelectedStore.fileSelected !== null) {
+    try {
+      const contatosObj = await CsvReader.validateAndParse(
+        fileSelectedStore.fileSelected
+      );
+      contatosObj.forEach((contato) =>
+        contatos.value.push(contato)
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      wppStates.handleError(errorMessage);
+      return;
+    }
+  }
+  //2 - CHECAR CONEXÃO COM O WPP
+  const connection = await checkWppConnection();
+  if (!connection) {
+    wppStates.handleError("Conexão com o WhatsApp inexistente");
+  }
+  //3 - VERIFICAR SE O NRO EXISTE no WPP
+  const result = await wppPhoneChecker(contatos.value);
+  if (result.error) {
+    wppStates.handleError(result.numerosInexistentes!.length > 1 ? `Números incorretos: ${result.numerosInexistentes}` : `Número incorreto: ${result.numerosInexistentes}`);
+    return;
+  }
+  //atribuindo o wid real do numero
+  contatos.value = result.contatosComWid!;
+  //4 - ENVIAR MENSAGENS E/OU ARQUIVOS
+  // 1 - caso: tem mensagem e tem arquivo
+  //PARA CADA UM DOS ARQUIVOS, ENVIAMOS PARA OS CONTATOS (ARQ GLOBAL)
+  if (fileAppender.hasFileAppended()){
+    for (let i = 0; i < fileAppender.filesAppended.length; i++){
+      contatos.value.forEach(async(contato, index)=> {
+        // - INSERIR UM DELAY PRA NÃO SER BANIDO
+        setTimeout(async ()=>{
+          //mostrando na tela o estado pré-envio
+          wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Preparando para enviar arquivo: ${fileAppender.filesAppended[i]?.name}`, `Arquivo ${i+1} de ${fileAppender.filesAppended.length}`, `Contato ${index+1} de ${contatos.value.length}`])
+          //mandamos a mensagem apenas na primeira vez
+          try{
+            await sendFile(contato.telefone, fileAppender.filesAppended[i]!, fileAppender.filesAppended[i]!.name, (i > 0 ? '' : contato.mensagem))
+            //mostrando na tela o estado pós-envio
+            wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Arquivo enviado com sucesso: ${fileAppender.filesAppended[i]?.name}`, `${i+1} de ${fileAppender.filesAppended.length}`, `Contato ${index+1} de ${contatos.value.length}`])
+          } catch (error){
+            const message = error instanceof Error ? error.message : String(error);
+            wppStates.handleError(message);
+          }
+        }, 5000) //5seg
+      })
+    }
+  } else {
+    // 2 - caso: apenas mensagem de texto
+    contatos.value.forEach(async (contato, index)=>{
+      wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Contato ${index+1} de ${contatos.value.length}`])
+      setTimeout(async ()=>{
+        try{
+          await sendText(contato.telefone, contato.mensagem)
+          wppStates.handleActualAction([`Mensagem enviada com sucesso para ${contato.nome}`, `Contato ${index+1} de ${contatos.value.length}`])
+        } catch (error){
+          const message = error instanceof Error ? error.message : String(error);
+            wppStates.handleError(message);
+        }
+      })
+    })
+  }
+};
+
+export default startWppService;
