@@ -48,41 +48,49 @@ const startWppService = async () => {
   contatos.value = result.contatosComWid!;
   //4 - ENVIAR MENSAGENS E/OU ARQUIVOS
   // 1 - caso: tem mensagem e tem arquivo
-  //PARA CADA UM DOS ARQUIVOS, ENVIAMOS PARA OS CONTATOS (ARQ GLOBAL)
   if (fileAppender.hasFileAppended()){
-    for (let i = 0; i < fileAppender.filesAppended.length; i++){
-      contatos.value.forEach(async(contato, index)=> {
-        // - INSERIR UM DELAY PRA NÃO SER BANIDO
-        setTimeout(async ()=>{
+    //PARA CADA UM DOS CONTATOS, ENVIAMOS
+    for (const contato of contatos.value){
+      let indexContato = 0;
+      //PARA CADA UM DOS ARQUIVOS, ENVIAMOS
+      for (let i = 0; i < fileAppender.filesAppended.length; i++){
           //mostrando na tela o estado pré-envio
-          wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Preparando para enviar arquivo: ${fileAppender.filesAppended[i]?.name}`, `Arquivo ${i+1} de ${fileAppender.filesAppended.length}`, `Contato ${index+1} de ${contatos.value.length}`])
+          wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Preparando para enviar arquivo: ${fileAppender.filesAppended[i]?.name}`, `Arquivo ${i+1} de ${fileAppender.filesAppended.length}`, `Contato ${indexContato+1} de ${contatos.value.length}`])
           //mandamos a mensagem apenas na primeira vez
           try{
             await sendFile(contato.telefone, fileAppender.filesAppended[i]!, fileAppender.filesAppended[i]!.name, (i > 0 ? '' : contato.mensagem))
             //mostrando na tela o estado pós-envio
-            wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Arquivo enviado com sucesso: ${fileAppender.filesAppended[i]?.name}`, `${i+1} de ${fileAppender.filesAppended.length}`, `Contato ${index+1} de ${contatos.value.length}`])
+            wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Arquivo enviado com sucesso: ${fileAppender.filesAppended[i]?.name}`, `${i+1} de ${fileAppender.filesAppended.length}`, `Contato ${indexContato+1} de ${contatos.value.length}`])
           } catch (error){
             const message = error instanceof Error ? error.message : String(error);
             wppStates.handleError(message);
           }
-        }, 5000) //5seg
-      })
+          await sleep(250) 
+      }
+      await sleep(5000)
+      indexContato++;
     }
   } else {
     // 2 - caso: apenas mensagem de texto
-    contatos.value.forEach(async (contato, index)=>{
-      wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Contato ${index+1} de ${contatos.value.length}`])
-      setTimeout(async ()=>{
-        try{
-          await sendText(contato.telefone, contato.mensagem)
-          wppStates.handleActualAction([`Mensagem enviada com sucesso para ${contato.nome}`, `Contato ${index+1} de ${contatos.value.length}`])
-        } catch (error){
-          const message = error instanceof Error ? error.message : String(error);
-            wppStates.handleError(message);
-        }
-      })
-    })
+    for (const contato of contatos.value){
+      let indexContato = 0;
+      wppStates.handleActualAction([`Enviando mensagem para: ${contato.nome}`, `Contato ${indexContato+1} de ${contatos.value.length}`])
+      try{
+        await sendText(contato.telefone, contato.mensagem)
+        wppStates.handleActualAction([`Mensagem enviada com sucesso para ${contato.nome}`, `Contato ${indexContato+1} de ${contatos.value.length}`])
+      } catch (error){
+        const message = error instanceof Error ? error.message : String(error);
+          wppStates.handleError(message);
+      } finally{
+        await sleep(5000)
+        indexContato++
+      }
+    }
   }
 };
+
+const sleep = async (ms: number) =>{
+  return new Promise(res => setTimeout(res, ms))
+}
 
 export default startWppService;

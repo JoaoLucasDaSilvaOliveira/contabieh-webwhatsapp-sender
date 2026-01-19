@@ -21,7 +21,11 @@ const popupMessage = ref<string | null>(null)
 
 const handleWppService = async () => {
   showWppService.value = true;
-  await startWppService();
+  try{
+    await startWppService();
+  } catch (e){
+    wppStates.handleError(String(e))
+  }
   showWppService.value = false;
   popupMessage.value = 'Envio finalizado, confira os logs para mais informações'
   setTimeout(()=>{
