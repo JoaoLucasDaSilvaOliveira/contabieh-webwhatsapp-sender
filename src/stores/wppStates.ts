@@ -1,11 +1,12 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
 
-export const useWppStatesStore = defineStore("fileSelected", () => {
+export const useWppStatesStore = defineStore("wppStates", () => {
     const error = ref<string | null>();
     const actualAction = ref<string[]|null>(null)
 
     const handleError = (errorMessage: string) =>{
+        alert(errorMessage)
         error.value = errorMessage;
         setTimeout (()=>{
             error.value = null;

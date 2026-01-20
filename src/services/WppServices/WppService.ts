@@ -9,12 +9,13 @@ import { useFileAppenderStore } from "@/stores/fileAppender";
 import { sendFile } from "./WppFileSender";
 import { sendText } from "./WppTextSender";
 
-const fileSelectedStore = useFileSelectedStore();
-const wppStates = useWppStatesStore();
-const fileAppender = useFileAppenderStore();
-const contatos = ref <ContatosEmCSV[]>([])
 
 const startWppService = async () => {
+  
+  const fileSelectedStore = useFileSelectedStore();
+  const wppStates = useWppStatesStore();
+  const fileAppender = useFileAppenderStore();
+  const contatos = ref <ContatosEmCSV[]>([])
   //TODO:
   //IMPLEMENTAÇÕES:
   //1 - VALIDAR OS NÚMEROS E COLOCAR O @c.us

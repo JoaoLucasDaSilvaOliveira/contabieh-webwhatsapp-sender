@@ -1,5 +1,5 @@
 import {type ContatosEmCSV} from '@/services/WppServices/CsvReader/CsvReaderInterface'
-import { phoneValidator } from '@/composable/PhoneValidatorComposable'
+import { phoneValidator } from '@/components/composables/PhoneValidatorComposable'
 
 export class CsvReader {
     

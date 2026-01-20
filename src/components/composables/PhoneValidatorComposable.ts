@@ -6,8 +6,6 @@ export const phoneValidator = (number: string):boolean =>{
 
     phoneRegex.test(number) ? null : invalidNumbers.push(number)
 
-    console.log(invalidNumbers.length > 0 ? false : true);
-
     return (invalidNumbers.length > 0 ? false : true)
 
 }
