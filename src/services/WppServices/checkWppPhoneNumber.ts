@@ -6,9 +6,10 @@ export const wppPhoneChecker = async (contatos: ContatosEmCSV[]) =>{
         const contatosComWid: ContatosEmCSV[] = []
         //PERCORREMOS TODOS OS NUMEROS RECEBIDOS
         for (const contato of contatos){
-            const result = await window.WPP.contact.queryExists(contato.telefone);
+            const contatoAjustado = '55'+contato.telefone;
+            const result = await window.WPP.contact.queryExists(contatoAjustado);
             if (!result || !result.wid) {
-                numerosInexistentes.push(contato.telefone)
+                numerosInexistentes.push(contatoAjustado)
             } else {
                 contatosComWid.push({id_empresa: contato.id_empresa, telefone: result.wid._serialized, nome: contato.nome, mensagem: contato.mensagem, mapa_referencias: contato.mapa_referencias})
             }

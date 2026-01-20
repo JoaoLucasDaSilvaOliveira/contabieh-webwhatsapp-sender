@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 
 export const useWppStatesStore = defineStore("wppStates", () => {
-    const error = ref<string | null>();
+    const error = ref<string | null>(null);
     const actualAction = ref<string[]|null>(null)
 
     const handleError = async (errorMessage: string) =>{

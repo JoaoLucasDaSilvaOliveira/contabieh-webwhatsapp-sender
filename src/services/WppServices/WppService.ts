@@ -20,6 +20,7 @@ const startWppService = async () => {
   //IMPLEMENTAÇÕES:
   //1 - VALIDAR OS NÚMEROS E COLOCAR O @c.us
   if (fileSelectedStore.fileSelected !== null) {
+    
     try {
       const contatosObj = await CsvReader.validateAndParse(
         fileSelectedStore.fileSelected
@@ -28,28 +29,25 @@ const startWppService = async () => {
         contatos.value.push(contato)
       );
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      await wppStates.handleError(errorMessage);
-      return;
+      throw error;
     }
   }
   //2 - CHECAR CONEXÃO COM O WPP
-
   try {
     await checkWppConnection();
   } catch (e) {
-    await wppStates.handleError(String(e));
-    return;
+    throw e;
   }
   //3 - VERIFICAR SE O NRO EXISTE no WPP
   const result = await wppPhoneChecker(contatos.value);
   if (result.error) {
-    await wppStates.handleError(result.numerosInexistentes!.length > 1 ? `Números incorretos: ${result.numerosInexistentes}` : `Número incorreto: ${result.numerosInexistentes}`);
-    return;
+    throw new Error(result.numerosInexistentes!.length > 1 ? `Números incorretos: ${result.numerosInexistentes}` : `Número incorreto: ${result.numerosInexistentes}`);
   }
   //atribuindo o wid real do numero
   contatos.value = result.contatosComWid!;
+  contatos.value.forEach((contato)=>{
+    console.log(contato)
+  })
   //4 - ENVIAR MENSAGENS E/OU ARQUIVOS
   // 1 - caso: tem mensagem e tem arquivo
   if (fileAppender.hasFileAppended()){

@@ -14,7 +14,7 @@ if (!host) {
   host.id = hostId;
   host.style.position = 'absolute';
   host.style.top = '0';
-  host.style.left = '0';
+  host.style.right = '0';
   host.style.zIndex = '99999'; // Fica sobre tudo
   host.style.pointerEvents = 'none'; // Permite clicar através da área vazia
   document.body.appendChild(host);

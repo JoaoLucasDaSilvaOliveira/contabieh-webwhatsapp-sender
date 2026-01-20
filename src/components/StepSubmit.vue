@@ -31,7 +31,6 @@ const handleWppService = async () => {
     popupMessage.value = 'Envio finalizado, confira os logs para mais informações';
     
     setTimeout(() => {
-      localStorage.clear();
       multiStepForm.backToBeginning();
       popupMessage.value = null;
       showWppService.value = false;
