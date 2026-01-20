@@ -1,31 +1,23 @@
 export const loadWppLibrary = async () => {
   return new Promise((resolve, reject) => {
-    // Se já estiver carregado, retorna imediatamente
-    if (window.WPP && window.WPP.isReady) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    // Usando a versão nightly conforme sua documentação (ou use uma versão fixa)
-    script.src = 'https://github.com/wppconnect-team/wa-js/releases/download/nightly/wppconnect-wa.js';
-    script.async = true;
-
-    script.onload = () => {
-      // O script carregou, agora esperamos o WPP iniciar internamente
-      if (window.WPP) {
-        window.WPP.webpack.onReady(() => {
-          resolve(true);
-        });
-      } else {
-        reject(new Error('Falha ao inicializar WPP object'));
-      }
+    // Função de verificação
+    const check = () => {
+        if (window.WPP && window.WPP.isReady) {
+            resolve(true);
+        } else {
+            // Tenta novamente em 1 segundo
+            setTimeout(check, 1000);
+        }
     };
 
-    script.onerror = () => {
-      reject(new Error('Erro ao carregar o script do WPPConnect'));
-    };
+    // Timeout de segurança (ex: 30 segundos)
+    setTimeout(() => {
+        if (!window.WPP || !window.WPP.isReady) {
+            // Não rejeita fatalmente, apenas avisa, pois pode demorar a carregar
+            console.warn("WPP ainda não detectado, continuando a esperar..."); 
+        }
+    }, 30000);
 
-    document.head.appendChild(script);
+    check();
   });
 };

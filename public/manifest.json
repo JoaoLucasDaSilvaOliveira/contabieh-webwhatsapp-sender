@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Contabiehl WhatsApp Sender",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://web.whatsapp.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["loader.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*", "wppconnect.js"],
+      "matches": ["https://web.whatsapp.com/*"]
+    }
+  ]
+}
