@@ -21,18 +21,40 @@ const popupMessage = ref<string | null>(null)
 
 const handleWppService = async () => {
   showWppService.value = true;
-  try{
+  
+  try {
     await startWppService();
-  } catch (e){
-    wppStates.handleError(String(e))
+    
+    // CASO DE SUCESSO:
+    popupMessage.value = 'Envio finalizado, confira os logs para mais informações';
+    
+    setTimeout(() => {
+      localStorage.clear();
+      multiStepForm.backToBeginning();
+      popupMessage.value = null;
+      showWppService.value = false;
+    }, 5000);
+
+  } catch (e) {
+    // CASO DE ERRO:
+    const errorMessage = String(e);
+    await wppStates.handleError(errorMessage); // Isso mostra o erro no store
+
+    // Aguardamos o tempo que o erro fica na tela (5000ms do store) 
+    // + um pouco de folga para o usuário ler
+    setTimeout(() => {
+      popupMessage.value = 'Ocorreu um erro durante o envio. Verifique as mensagens acima.';
+      
+      // Se quiser que ele volte sozinho mesmo com erro após a leitura:
+      setTimeout(() => {
+        // localStorage.clear(); // Talvez não limpar aqui para o usuário não perder o que digitou?
+        multiStepForm.backToBeginning();
+        popupMessage.value = null;
+        showWppService.value = false;
+      }, 4000);
+      
+    }, 5500); 
   }
-  showWppService.value = false;
-  popupMessage.value = 'Envio finalizado, confira os logs para mais informações'
-  setTimeout(()=>{
-    localStorage.clear();
-    multiStepForm.backToBeginning()
-    popupMessage.value = null;
-  }, 5000)// 5seg
 };
 
 interface LoadbleStore extends Store {
@@ -133,7 +155,7 @@ onMounted(() => {
       <p v-for="(action, index) in wppStates.actualAction" :key="index">
         {{ action }}
       </p>
-      <p class="text-red-500" v-if="wppStates.error">
+      <p class="text-red-500">
         {{ wppStates.error }}
       </p>
     </div>

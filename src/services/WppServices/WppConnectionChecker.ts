@@ -1,13 +1,22 @@
-export const checkWppConnection = async () =>{
-// Verifica se o WPP foi injetado corretamente
-  if (!window.WPP || !window.WPP.webpack.isReady) {
-    throw new Error('WPPConnect não está pronto. A página recarregou?');
-  }
+import { loadWppLibrary } from "./WppLoader/WppLoaderService";
 
-  // Verifica se está logado
-  if (!window.WPP.conn.isRegistered()) {
-    throw new Error('Usuário não está logado no WhatsApp Web.');
-  }
+export const checkWppConnection = async () => {
+  try {
+    // 1. Tenta injetar/carregar a biblioteca primeiro
+    await loadWppLibrary();
 
-  return true;
+    // 2. Verifica se o WPP está pronto de fato
+    if (!window.WPP || !window.WPP.webpack.isReady) {
+      throw new Error('WPPConnect carregou mas não está pronto.');
+    }
+
+    // 3. Verifica se o usuário está logado no WhatsApp
+    if (!window.WPP.conn.isAuthenticated()) {
+      throw new Error('Usuário não está logado no WhatsApp Web.');
+    }
+
+    return true;
+  } catch (e) {
+    throw e; // Repassa o erro para ser tratado na UI
+  }
 }

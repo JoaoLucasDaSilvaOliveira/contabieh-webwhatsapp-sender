@@ -5,8 +5,7 @@ export const useWppStatesStore = defineStore("wppStates", () => {
     const error = ref<string | null>();
     const actualAction = ref<string[]|null>(null)
 
-    const handleError = (errorMessage: string) =>{
-        alert(errorMessage)
+    const handleError = async (errorMessage: string) =>{
         error.value = errorMessage;
         setTimeout (()=>{
             error.value = null;
