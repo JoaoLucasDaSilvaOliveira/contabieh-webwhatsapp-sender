@@ -35,6 +35,7 @@ const startWppService = async () => {
     }
   }
   //2 - CHECAR CONEXÃO COM O WPP
+
   try {
     await checkWppConnection();
   } catch (e) {

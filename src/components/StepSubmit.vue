@@ -23,7 +23,9 @@ const handleWppService = async () => {
   showWppService.value = true;
   
   try {
+
     await startWppService();
+
     
     // CASO DE SUCESSO:
     popupMessage.value = 'Envio finalizado, confira os logs para mais informações';
