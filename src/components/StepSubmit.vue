@@ -136,19 +136,21 @@ onMounted(() => {
         </div>
       </fieldset>
     </div>
-    <div class="flex flex-row gap-31 mt-5">
-      <button
-        @click="multiStepForm.backToBeginning"
-        class="inline p-2 hover:bg-red-500 hover:text-white rounded-2xl border-2 border-red-300 transition-all ease duration-300 hover:border-red-500"
-      >
-        Alterar informações
-      </button>
-      <button
-        @click="handleWppService"
-        class="inline p-2 hover:bg-green-500 rounded-2xl border-2 border-green-300 hover:text-white hover:border-green-500 transition-all ease duration-300 w-35"
-      >
-        Enviar
-      </button>
+    <div class="absolute bottom-40">
+      <div class="flex flex-row gap-20 mt-5">
+        <button
+          @click="multiStepForm.backToBeginning"
+          class="inline p-2 hover:bg-red-500 hover:text-white rounded-2xl border-2 border-red-300 transition-all ease duration-300 hover:border-red-500"
+        >
+          Alterar informações
+        </button>
+        <button
+          @click="handleWppService"
+          class="inline p-2 hover:bg-green-500 rounded-2xl border-2 border-green-300 hover:text-white hover:border-green-500 transition-all ease duration-300 w-35"
+        >
+          Enviar
+        </button>
+      </div>
     </div>
   </div>
   <div class="flex flex-col items-center w-full" v-else>

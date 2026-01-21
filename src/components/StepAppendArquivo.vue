@@ -29,7 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex items-center flex-col overflow-visible">
+  <div class="flex items-center flex-col overflow-visible w-full">
     <span>
       Adicionar arquivo(s)?
       <span class="text-red-500 opacity-50 mr-1">Opcional</span>

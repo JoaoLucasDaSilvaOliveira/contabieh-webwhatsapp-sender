@@ -30,7 +30,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen">
+  <div class="flex min-h-[100vh] bg-white mr-1">
     <aside
       :class="[
         'transition-all duration-500 ease-in-out overflow-hidden shrink-0 bg-[rgb(25,25,112)] border-r flex flex-col items-center text-white',
@@ -55,7 +55,7 @@ onMounted(() => {
       </div>
     </aside>
 
-    <main class="grow p-6 flex items-center flex-col overflow-visible mt-5">
+    <main class="grow p-6 flex items-center flex-col overflow-visible border-y-5 border-r-5 border-solid border-[#191970] w-[453px]">
       <header class="mb-20 text-center">
         <h1 class="text-2xl font-bold mb-1">Contabiehl WhatsApp</h1>
         <p>Enviador de mensagens em massa</p>
@@ -63,20 +63,20 @@ onMounted(() => {
 
       <div class="w-full max-w-2xl overflow-visible">
         <component :is="multiStepForm.currentStep.content" />
-        <div class="mt-6 flex justify-center gap-4 relative">
+        <div class="mt-6 flex justify-center gap-4">
           <div
             v-if="multiStepForm.currentStep.position < 3"
-            class="flex gap-31 justify-center w-full absolute top-20"
+            class="flex gap-20 justify-center absolute bottom-40"
           >
             <button
               @click="multiStepForm.previousStep()"
-              class="px-4 py-2 bg-gray-200 rounded"
+              class="px-4 py-2 bg-gray-200 rounded cursor-pointer"
             >
               Passo anterior
             </button>
             <button
               @click="multiStepForm.nextStep()"
-              class="px-4 py-2 bg-yellow-400 font-bold rounded"
+              class="px-4 py-2 bg-yellow-400 font-bold rounded cursor-pointer"
             >
               Proximo passo
             </button>
@@ -87,4 +87,5 @@ onMounted(() => {
   </div>
 </template>
 
-<style></style>
+<style scoped>
+</style>

@@ -13,7 +13,7 @@ if (!host) {
   host = document.createElement('div');
   host.id = hostId;
   host.style.position = 'absolute';
-  host.style.top = '0';
+  host.style.top = '0px'
   host.style.right = '0';
   host.style.zIndex = '99999'; // Fica sobre tudo
   host.style.pointerEvents = 'none'; // Permite clicar através da área vazia
@@ -38,10 +38,23 @@ let appContainer = shadow.getElementById('app');
 if (!appContainer) {
   appContainer = document.createElement('div');
   appContainer.id = 'app';
-  // Reabilita eventos de mouse para a sua extensão
-  appContainer.style.pointerEvents = 'auto'; 
+  
+  // --- CORREÇÃO ---
+  // Removemos o 'style.all = initial' que estava bloqueando sua fonte.
+  
+  // Garantimos apenas que o container se comporte como um bloco padrão e aceite cliques
+  appContainer.style.display = 'block';
+  appContainer.style.pointerEvents = 'auto';
+
+  // Aplicamos as classes do Tailwind.
+  // Como removemos o 'style.all', essas classes agora VÃO funcionar.
+  // 'font-sans' usará a fonte definida no CSS (Satoshi) se o Tailwind estiver configurado, 
+  // mas a regra do #app no style.css garante isso de qualquer forma.
+  appContainer.classList.add('font-sans', 'text-base', 'antialiased', 'text-gray-900');
+  
   shadow.appendChild(appContainer);
 }
+
 
 // 5. Montar a aplicação
 const app = createApp(App)

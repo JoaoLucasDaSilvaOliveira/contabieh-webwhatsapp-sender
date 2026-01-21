@@ -59,7 +59,7 @@ onMounted(() => {
       id="files-input"
       class="hidden"
       @change="fileSelected.handleFileChange"
-      accept=""
+      accept=".csv"
     />
     <p class="mt-5">ou</p>
     <fieldset
