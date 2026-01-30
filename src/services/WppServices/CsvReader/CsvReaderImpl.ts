@@ -10,19 +10,23 @@ export class CsvReader {
         if (fileString === null || fileString.length === 0) throw new Error('Arquivo corrompido ou com erro')
 
         const contatosEmCSV: ContatosEmCSV[] = [];//CONSTANTE DE RETORNO
-        const headersEsperados = ['codigo','nome da empresa', 'telefone', 'mensagem'];//O ESSENCIAL PRA APLICAÇÃO
+        const headersEsperados = ['Codigo','Nome da empresa', 'Telefone', 'Mensagem'];//O ESSENCIAL PRA APLICAÇÃO
         const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/; // Regex que identifica a vírgula apenas se ela NÃO estiver cercada por aspas
 
         const array = fileString.split(/\r?\n|\r/);
         if (array[0] === undefined) throw new Error('Arquivo não possui linhas')
 
         const headersEntregues = array[0]?.split(regex)
-        const contemHeaderEsperado = headersEsperados?.every((header)=> headersEntregues?.includes(header))
+
+        const contemHeaderEsperado = headersEsperados?.every((header)=> {
+                const headerEmLowerCase = headersEntregues.map(header => header.toLowerCase())
+                return headerEmLowerCase?.includes(header.toLowerCase());
+            })
         const invalidPhoneNumbers: string[] = []
 
         if (contemHeaderEsperado){
             //PRIMEIRO PRECISAMOS VALIDAR OS NÚMEROS E ADICIONAR O PREFIXO NECESSÁRIO
-            const phoneNumberPosition = headersEntregues!.indexOf('telefone');//PRA ISSO PRECISAMOS SABER A POSIÇÃO DO TELEFONE NO ARRAY DE HEADERS
+            const phoneNumberPosition = headersEntregues!.findIndex(header => header.trim().toLowerCase() === 'telefone')//PRA ISSO PRECISAMOS SABER A POSIÇÃO DO TELEFONE NO ARRAY DE HEADERS
             //SE TIVER OS HEADERS ESPERADOS, PERCORREMOS O ARRAY PULANDO A PRIMEIRA POSIÇÃO (HEADERS) CRIANDO UM MAPA
             for (let i = 1; i< array.length; i++){
                 const csvData = array[i]?.split(regex)
@@ -42,13 +46,13 @@ export class CsvReader {
                     
                     for (let j = 0; j < headersEntregues!.length; j++){
                         let data = csvData[j];
-                        if (data === '' && headersEsperados[j] === headersEntregues![j]){
+                        if (data === '' && headersEsperados[j]?.toLowerCase() === headersEntregues![j]?.toLowerCase()){
                             //caso eu tenha o dado vazio na posição que eu espero ter algo (essencial pra aplicação), lanço erro
-                            throw new Error(`É esperado um(a) ${headersEsperados[j]}`)
+                            throw new Error(`É esperado um(a): ${headersEsperados[j]}`)
                         } else if (data === undefined){
                             data = '';
                         }
-                        mapaReferencias.set(headersEntregues![j]!,data)
+                        mapaReferencias.set(headersEntregues![j]!.toLowerCase(),data)
                     }
 
                     //FAZEMOS A CRIAÇÃO DO OBJ E COLOCAMOS NO ARRAY
@@ -61,7 +65,7 @@ export class CsvReader {
                     })
                 }
             }
-            if (contatosEmCSV.length === 0) throw new Error ('Nenhum contato adicionado, por favor inclua um contato com, no mínimo: '+headersEsperados)
+            if (contatosEmCSV.length === 0) throw new Error ('Nenhum contato adicionado, por favor inclua um contato com, no mínimo: '+headersEsperados.join(', ')+".")
 
             if (invalidPhoneNumbers.length > 0) throw new Error(invalidPhoneNumbers.length > 1 ? 'Números inválidos: '+ invalidPhoneNumbers : 'Número inválido: '+invalidPhoneNumbers)
 

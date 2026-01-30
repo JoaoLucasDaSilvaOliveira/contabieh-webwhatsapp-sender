@@ -3,10 +3,10 @@ import { ref, onMounted } from "vue";
 import fileSelector from "@/assets/imgs/folder.png";
 import { useFileAppenderStore } from "@/stores/fileAppender";
 import trashCan from "@/assets/imgs/lixeira.png";
-import mGlass from "@/assets/imgs/lupa.png";
 
 const fileAppender = useFileAppenderStore();
-const showArchives = ref<boolean>(false);
+const showArchives = ref<boolean>(true);
+const appendedFiles = ref <HTMLInputElement | null> (null);
 
 const handleChangeFile = async (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -19,9 +19,10 @@ const handleChangeFile = async (event: Event) => {
   }
 };
 
-const toggleShowArchives = () => {
-  showArchives.value = !showArchives.value;
-};
+const handleClearAppendedFiles = () =>{
+  fileAppender.cleanAppendedFiles('global-file-option', appendedFiles.value)
+}
+
 
 onMounted(() => {
   fileAppender.loadStore();
@@ -29,10 +30,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex items-center flex-col overflow-visible w-full">
+  <div class="flex items-center flex-col overflow-visible w-full mt-15">
     <span>
       Adicionar arquivo(s)?
-      <span class="text-red-500 opacity-50 mr-1">Opcional</span>
       <label for="files-input" class="relative inline">
         <img
           class="w-7 inline cursor-pointer"
@@ -46,38 +46,33 @@ onMounted(() => {
         >
       </label>
       <img
-        :src="mGlass"
-        class="inline ml-7 mr-3 cursor-pointer"
-        alt="Ver arquivos"
-        title="Ver arquivos"
-        @click="toggleShowArchives"
-      />
-      <img
         :src="trashCan"
-        class="inline cursor-pointer"
+        class="inline cursor-pointer ml-3"
         alt="Deletar arquivos"
         title="Deletar arquivos"
-        @click="fileAppender.cleanAppendedFiles('global-file-option')"
+        @click="handleClearAppendedFiles()"
       />
     </span>
     <div
-      v-if="fileAppender.hasFileAppended() && showArchives"
       :class="[
-        '*:truncate block w-100 border-2 rounded-lg p-2 transition-all duration-200 border-gray-300 hover:border-[#F9B02E] mt-20 max-h-20',
-        fileAppender.filesAppended.length > 1
-          ? 'overflow-scroll'
+        '*:truncate w-100 border-2 rounded-lg border-gray-300 hover:border-[#F9B02E] mt-10 max-h-35 ',
+        fileAppender.filesAppended.length > 3
+          ? 'overflow-y-auto'
           : 'overflow-hidden',
+        fileAppender.hasFileAppended() ? 'p-3 px-4 pb-1':''
       ]"
     >
-      <p
+      <p v-if="fileAppender.hasFileAppended()"
         v-for="(file, index) in fileAppender.filesAppended"
         :key="index"
-        class="my-2"
+        class="mb-2"
       >
         {{ file.name }}
       </p>
+      <p v-else class="flex items-center justify-center text-center w-full min-h-30">Nenhum arquivo adicionado</p>
     </div>
     <input
+      ref="appendedFiles"
       type="file"
       name="file-contacts"
       id="files-input"

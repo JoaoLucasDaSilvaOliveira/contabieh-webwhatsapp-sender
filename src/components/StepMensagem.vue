@@ -2,43 +2,64 @@
 import { onMounted, ref} from "vue";
 import { useFileSelectedStore } from "@/stores/fileSelected";
 import trashCan from "@/assets/imgs/lixeira.png";
-import { useMinorStates } from "@/stores/minorStates";
 import { useGloblalLocalStorageHandler } from "@/stores/globalLocalStorageHandler";
 
 const optionMessage = ref<boolean>(true);
 const fileStoreSelected = useFileSelectedStore();
 const personalizatedMessage = ref<string | null>(null);
 const handleLocalStorage = useGloblalLocalStorageHandler();
-const handleMinorStates = useMinorStates();
 
 const toggleOptionMessage = () => {
-  handleMinorStates.saveMinorState("option-message", optionMessage.value);
+  handleLocalStorage.saveChanges("option-message", String(optionMessage.value));
+  if (((personalizatedMessage.value !== '' && personalizatedMessage.value !== null) && optionMessage.value === false) || optionMessage.value === true){
+    handleLocalStorage.handleCanClick(true); 
+  } else { 
+    handleLocalStorage.handleCanClick(false); 
+  }
+  //se tiver mensagem e for não: pode passar
 };
 
 onMounted(() => {
+  //inicia bloqueando a prox parte
+  handleLocalStorage.handleCanClick(false)
   if (!fileStoreSelected.fileSelected) {
     optionMessage.value = false;
+    if (personalizatedMessage.value === null || personalizatedMessage.value === ''){
+    }
   }
   const savedMessage = handleLocalStorage.getItem("personalizatedMessage");
   if (savedMessage) {
     personalizatedMessage.value = savedMessage;
   }
-  const stateOfOptionMessage = handleMinorStates.getMinorState("option-message");
+  const stateOfOptionMessage = handleLocalStorage.getItem("option-message");
   if (stateOfOptionMessage) {
     optionMessage.value = JSON.parse(stateOfOptionMessage) as boolean;
   } else if(fileStoreSelected.fileSelected) {
-    handleMinorStates.saveMinorState( 'option-message', optionMessage.value)
+    handleLocalStorage.saveChanges("option-message", String(optionMessage.value));
+  }
+  //regra pra liberação do clique
+  if ((fileStoreSelected.fileSelected && optionMessage.value === true) || personalizatedMessage.value !== null){
+    handleLocalStorage.handleCanClick(true);
   }
 });
 
+const a = () => {
+  console.log(fileStoreSelected.fileSelected === null)
+}
+
 const handlePersonalizatedMessage = () => {
-  if (personalizatedMessage.value === "") {
+  if (personalizatedMessage.value === "" || personalizatedMessage.value === null) {
     handleLocalStorage.clearItem("personalizatedMessage");
+    if ((fileStoreSelected.fileSelected && optionMessage.value === false) || fileStoreSelected.fileSelected === null){
+      //se não tiver mensagem, tiver arquvio e a opção por mensagem do arquvio for não  
+      handleLocalStorage.handleCanClick(false);
+    }
   } else {
     handleLocalStorage.saveChanges(
       "personalizatedMessage",
       personalizatedMessage.value ?? ""
     );
+    handleLocalStorage.handleCanClick(true);
   }
 };
 
@@ -49,7 +70,7 @@ const cleanMessage = () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center">
+  <div :class="['flex flex-col items-center', fileStoreSelected.fileSelected ? 'mt-10' : 'mt-25']">
     <div v-if="fileStoreSelected.fileSelected">
       <p class="mb-4 font-medium text-gray-700">
         Usar mensagem da tabela de contatos?
@@ -130,7 +151,7 @@ const cleanMessage = () => {
       <textarea
         :disabled="optionMessage"
         :class="[
-          'w-full p-3 outline-none transition-all duration-200 placeholder:text-gray-400 field-sizing-content resize-none  block break-all overflow-hidden min-h-[100px] overflow-scroll',
+          'w-full p-3 outline-none transition-all duration-200 placeholder:text-gray-400 field-sizing-content resize-none  block break-all overflow-hidden min-h-[100px] overflow-y-scroll',
           fileStoreSelected.fileSelected ? 'max-h-20' : 'max-h-40',
         ]"
         name="custom-message"

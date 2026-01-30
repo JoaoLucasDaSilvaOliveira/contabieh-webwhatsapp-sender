@@ -4,33 +4,40 @@ import hamburguer from "@/assets/imgs/hamburguer.png";
 import logo from "@/assets/imgs/logo-contabiehl.png";
 import { useMultiStepFormStore } from "@/stores/multiStepForm";
 import {useGloblalLocalStorageHandler} from "@/stores/globalLocalStorageHandler";
-import { useMinorStates } from "@/stores/minorStates";
+import { useFileSelectedStore } from "@/stores/fileSelected";
+import defHomeIco from '@/assets/imgs/home.png';
+import homeIcoYellow from '@/assets/imgs/home-yellow.png'
 
 const isAsideOpen = ref<boolean>(true);
 const multiStepForm = useMultiStepFormStore();
 const handleLocalStorage = useGloblalLocalStorageHandler();
-const handleMinorStates = useMinorStates()
+const fileSelected = useFileSelectedStore();
+const homeIco = ref(defHomeIco);
 
 const toggleAside = () => {
   isAsideOpen.value = !isAsideOpen.value;
-  handleMinorStates.saveMinorState("aside-state", isAsideOpen.value);
+  handleLocalStorage.saveChanges("aside-state", String(isAsideOpen.value));
 };
 
 onMounted(() => {
   const asideState = handleLocalStorage.getItem("aside-state");
   if (asideState === null) {
     //salva estado atual caso não tenha estado ainda
-    handleMinorStates.saveMinorState("aside-state", isAsideOpen.value);
+    handleLocalStorage.saveChanges("aside-state", String(isAsideOpen.value));
   } else {
     //caso ja tenha estado, o usamos
     isAsideOpen.value = asideState === "true";
+  }
+  const savedCanClick = handleLocalStorage.getItem('can-click')
+  if (savedCanClick !== null){
+    handleLocalStorage.handleCanClick(savedCanClick === 'true')
   }
   multiStepForm.checkStep();
 });
 </script>
 
 <template>
-  <div class="flex min-h-[100vh] bg-white mr-1">
+  <div class="flex min-h-[100vh] mr-1">
     <aside
       :class="[
         'transition-all duration-500 ease-in-out overflow-hidden shrink-0 bg-[rgb(25,25,112)] border-r flex flex-col items-center text-white',
@@ -55,37 +62,78 @@ onMounted(() => {
       </div>
     </aside>
 
-    <main class="grow p-6 flex items-center flex-col overflow-visible border-y-5 border-r-5 border-solid border-[#191970] w-[453px]">
-      <header class="mb-20 text-center">
+    <main class="bg-[url('@/assets/imgs/bg-zap.jpg')] bg-cover bg-center bg-white/35 bg-blend-overlay grow p-6 flex items-center flex-col overflow-visible border-y-5 border-r-5 border-solid border-[#191970] w-113.25">
+      <header class="mb-10 text-center flex flex-col justify-center h-25">
         <h1 class="text-2xl font-bold mb-1">Contabiehl WhatsApp</h1>
         <p>Enviador de mensagens em massa</p>
       </header>
 
-      <div class="w-full max-w-2xl overflow-visible">
-        <component :is="multiStepForm.currentStep.content" />
-        <div class="mt-6 flex justify-center gap-4">
-          <div
-            v-if="multiStepForm.currentStep.position < 3"
-            class="flex gap-20 justify-center absolute bottom-40"
-          >
-            <button
-              @click="multiStepForm.previousStep()"
-              class="px-4 py-2 bg-gray-200 rounded cursor-pointer"
+      <div class="w-full flex gap-1 justify-start items-center">
+        <div 
+          :class="['group flex text-[#191970] gap-1 justify-center items-center cursor-pointer transition-all duration-600 hover:text-[#fdc700]', multiStepForm.currentStep.position === 0 ? 'underline' : '']"
+          @click="multiStepForm.backToBeginning"
+        >
+          <div class="relative w-5 h-5 -mt-0.5">
+            <img 
+              :src="defHomeIco" 
+              class="absolute inset-0 w-full h-full transition-opacity duration-600 group-hover:opacity-0"
             >
-              Passo anterior
-            </button>
-            <button
-              @click="multiStepForm.nextStep()"
-              class="px-4 py-2 bg-yellow-400 font-bold rounded cursor-pointer"
+            <img 
+              :src="homeIcoYellow" 
+              class="absolute inset-0 w-full h-full opacity-0 transition-opacity duration-600 group-hover:opacity-100"
             >
-              Proximo passo
-            </button>
           </div>
+          <p>Início</p>
         </div>
+
+        <p class="text-[#191970]">{{ multiStepForm.currentStep.position > 0 ? '/' : '' }}</p>
+
+        <p 
+          class="group break-normal text-[#191970] transition-all duration-600 hover:text-[#fdc700]" 
+          v-for="(step, index) in multiStepForm.steps" 
+          :key="index"
+        >
+          <span :class="['cursor-pointer', index === multiStepForm.currentStep.position-1 ? 'underline' : '']" @click="multiStepForm.goTo(index+1)">{{ step.position < multiStepForm.currentStep.position ? step.label : ''}}</span> 
+          <span class="text-[#191970]">
+            {{ step.position < multiStepForm.currentStep.position-1 ? ' /' :'' }}
+          </span>
+        </p>
+      </div>
+
+      <div class="w-full max-w-2xl overflow-visible grow">
+        <component :is="multiStepForm.currentStep.content" />
+      </div>
+      <div class="flex justify-center gap-4 mb-10" v-if="!fileSelected.csvError">
+        <div
+          v-if="multiStepForm.currentStep.position < 3"
+          class="flex gap-19 justify-center items-center"
+        >
+          <button
+            @click="multiStepForm.currentStep.position !== 0 && multiStepForm.previousStep()"
+            :class="['h-12 w-40 px-4 py-2 transition-all duration-500  border-2 border-solid border-gray-200 rounded', multiStepForm.currentStep.position !== 0 ? 'cursor-pointer bg-gray-200' : 'cursor-not-allowed']"
+          >
+            Passo anterior
+          </button>
+          <button
+            @click="handleLocalStorage.canClick && multiStepForm.nextStep()"
+            :class="['h-12 w-40 px-4 py-2 border-2 border-solid border-yellow-400  rounded transition-all duration-500', handleLocalStorage.canClick ? 'cursor-pointer bg-yellow-400 font-bold' : 'cursor-not-allowed']"
+          >
+            Proximo passo
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-2 flex-row">
+        <div 
+        :class="[
+          'w-2 h-2 border border-solid border-[#EE2B09] rounded-full transition-all durantion-700 ease', 
+          index === multiStepForm.currentStep.position
+          ? 'bg-[#EE2B09] '
+          : '' 
+        ]" 
+        v-for="(step, index) in multiStepForm.steps" key="index"></div>
       </div>
     </main>
   </div>
 </template>
 
-<style scoped>
-</style>

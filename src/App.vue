@@ -3,10 +3,12 @@
   import zapLogoRedonda from '@/assets/imgs/whatsapp1.png'
   import xRedondo from '@/assets/imgs/x-vermelho-redondo.png'
 
+
   const img = ref<string>(zapLogoRedonda)
-  const showExtension = ref<boolean>(false)
-  const isOnChatScreen = ref<boolean>(false)
+  const showExtension = ref<boolean>(true)
+  const isOnChatScreen = ref<boolean>(true)
   let screenCheckInterval: any | null = null
+  
 
   const handleShowButton = () =>{
     showExtension.value = !showExtension.value
@@ -33,15 +35,15 @@
   }
 
   // LIFECYCLE
-  onMounted(() => {
-    // Verifica imediatamente
-    checkScreen();
-    screenCheckInterval = setInterval(checkScreen, 1);
-  });
+  // onMounted(() => {
+  //   // Verifica imediatamente
+  //   checkScreen();
+  //   screenCheckInterval = setInterval(checkScreen, 1);
+  // });
 
-  onUnmounted(() => {
-    if (screenCheckInterval) clearInterval(screenCheckInterval);
-  });
+  // onUnmounted(() => {
+  //   if (screenCheckInterval) clearInterval(screenCheckInterval);
+  // });
 </script>
 
 <template>
@@ -53,7 +55,7 @@
         </button>
       </div>
     </div>
-    <RouterView v-if="showExtension"/>
+    <RouterView v-show="showExtension"/>
   </div>
 </template>
 

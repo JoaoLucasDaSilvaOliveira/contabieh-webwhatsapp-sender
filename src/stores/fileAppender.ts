@@ -14,6 +14,7 @@ export const useFileAppenderStore = defineStore("fileAppenderStore", () => {
   const filesAppended = ref <Array<File>>([])
 
   const appendFile = (file: File) => {
+    if (filesAppended.value.find(fileAppended => fileAppended.name === file.name)) return
     filesAppended.value.push(file)
     saveArchives();
   }
@@ -25,9 +26,10 @@ export const useFileAppenderStore = defineStore("fileAppenderStore", () => {
     return true
   }
 
-  const cleanAppendedFiles = (key: string) =>{
-    const filesInput = document.getElementById('files-input') as HTMLInputElement;
-    filesInput.value = "";
+  const cleanAppendedFiles = (key: string, input?: HTMLInputElement | null) =>{
+    if (input){
+      input.value = '';
+    }
     filesAppended.value = [];
     handleLocalStorage.clearItem('global-files');
     handleLocalStorage.clearItem(key)

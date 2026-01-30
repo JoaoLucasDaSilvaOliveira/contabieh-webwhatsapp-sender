@@ -9,6 +9,7 @@ export const useGloblalLocalStorageHandler = defineStore(
   () => {
     const keysUseds = ref<Array<string>>([]);
     const DEFAULT_KEY = "keys-useds";
+    const canClick = ref<boolean>(false);
 
     const saveChanges = (key: string, content: string) => {
       //pegar as chaves salvas
@@ -56,12 +57,23 @@ export const useGloblalLocalStorageHandler = defineStore(
       }
     };
 
+    /**
+     * Limpa todas as chaves criadas e usadas por esse programa, sem afetar outros
+     */
     const clearAll = () => {
-      localStorage.clear();
+      const keysSaveds = localStorage.getItem(DEFAULT_KEY); // retorna um array em formato JSON ou null
+      if (keysSaveds) {
+        keysUseds.value = JSON.parse(keysSaveds);
+        keysUseds.value.forEach(key => localStorage.removeItem(key))
+        localStorage.removeItem(DEFAULT_KEY)
+      }
     };
 
+    const handleCanClick = (bool: boolean) => {
+      canClick.value = bool;
+      saveChanges('can-click', String(canClick.value))
+    }
 
-
-    return { saveChanges, getItem, clearItem, clearAll };
+    return { saveChanges, getItem, clearItem, clearAll, canClick, handleCanClick };
   }
 );

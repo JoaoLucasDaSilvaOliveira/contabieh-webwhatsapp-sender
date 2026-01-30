@@ -5,7 +5,7 @@ import StepMensagem from "@/components/StepMensagem.vue";
 import StepAppendArquivo from "@/components/StepAppendArquivo.vue";
 import StepResultados from "@/components/StepResultados.vue";
 import StepSubmit from "@/components/StepSubmit.vue";
-import { useMinorStates } from "./minorStates";
+import { useGloblalLocalStorageHandler } from "./globalLocalStorageHandler";
 
 
 export interface Step {
@@ -15,13 +15,13 @@ export interface Step {
 }
 
 export const useMultiStepFormStore = defineStore("multiStepForm", () => {
-  const handleMinorStates = useMinorStates()
+  const handleLocalStorage = useGloblalLocalStorageHandler();
   const steps: Array<Step> = [
     { position: 0, label: "Contatos", content: markRaw(StepContato) },
     { position: 1, label: "Mensagem", content: markRaw(StepMensagem) },
     { position: 2, label: "Arquivos", content: markRaw(StepAppendArquivo) },
-    { position: 3, label: "Enviar mensagens", content: markRaw(StepSubmit) },
-    { position: 4, label: "Resultados", content: markRaw(StepResultados) },
+    { position: 3, label: "Conferir Dados", content: markRaw(StepSubmit) },
+    { position: 4, label: "", content: markRaw(StepResultados) },
   ];
   const firstStep = 0;
   const lastStep = steps.length - 1;
@@ -49,17 +49,28 @@ export const useMultiStepFormStore = defineStore("multiStepForm", () => {
   };
 
   const saveStep = (stepValue: string) => {
-    handleMinorStates.saveMinorState("currentStep", stepValue);
+    handleLocalStorage.saveChanges("currentStep", stepValue);
   };
 
   const checkStep = () => {
-    const savedStep = handleMinorStates.getMinorState("currentStep");
+    const savedStep = handleLocalStorage.getItem("currentStep");
     if (savedStep === null) {
       currentStep.value = steps[0]!;
     } else {
       currentStep.value = steps[parseInt(savedStep!)]!;
     }
   };
+
+  const goTo = (position: number) =>{
+    if (position === 0){
+      backToBeginning();
+      return;
+    }
+    if (position > 0 && position < steps.length && steps[position]){
+      currentStep.value = steps[position];
+      saveStep(String(currentStep.value.position))
+    }
+  }
 
   return {
     currentStep,
@@ -68,5 +79,6 @@ export const useMultiStepFormStore = defineStore("multiStepForm", () => {
     previousStep,
     backToBeginning,
     checkStep,
+    goTo
   };
 });

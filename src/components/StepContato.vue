@@ -4,18 +4,31 @@ import { useFileSelectedStore } from "@/stores/fileSelected";
 import fileSelector from "@/assets/imgs/folder.png";
 import trashCan from "@/assets/imgs/lixeira.png";
 import {useGloblalLocalStorageHandler} from "../stores/globalLocalStorageHandler";
+import { phoneValidator } from "./composables/PhoneValidatorComposable";
 
 const fileSelected = useFileSelectedStore();
 const manualContacts = ref<string | null>(null);
 const handleLocalStorage = useGloblalLocalStorageHandler();
+const invalidPhoneNumbers = ref<string[] | null> ();
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const handleCleanSelectedFile = () => {
-  handleLocalStorage.clearItem('option-message')
-  const fileInput = document.getElementById("files-input") as HTMLInputElement;
-  fileSelected.cleanSelectedFile(fileInput);
+  handleLocalStorage.clearItem('option-message');
+
+  // Acessamos via .value
+  if (fileInput.value) {
+    fileInput.value.value = ''; 
+    fileSelected.cleanSelectedFile(fileInput.value);
+    handleLocalStorage.handleCanClick(false)
+  }
+
 };
 
 const handleContacts = () => {
+  handleLocalStorage.handleCanClick(false)
+  // Substitui tudo o que NÃO for número (\d), vírgula (,) ou espaço (\s) por nada
+  manualContacts.value = manualContacts.value?.replace(/[^\d,\s]/g, '')!
+  handleCleanSelectedFile()
   if (
     handleLocalStorage.getItem("manual-contacts") &&
     manualContacts !== null &&
@@ -27,16 +40,61 @@ const handleContacts = () => {
   }
 };
 
+const handleFileSelected = (event: Event) => {
+  manualContacts.value = null;
+  handleLocalStorage.clearItem('manual-contacts');
+  verifyManualContacts();
+  fileSelected.handleFileChange(event);
+  handleLocalStorage.handleCanClick(true)
+}
+
+const verifyManualContacts = () => {
+  // Se for null ou undefined, tratamos como string vazia para o split não quebrar
+  const value = manualContacts.value || "";
+  
+  // Criamos o array de números limpando espaços e removendo entradas vazias
+  const data = value.split(',').map(number => number.trim()).filter(number => number !== '');
+
+  // 1. Se o campo estiver vazio (após o trim)
+  if (data.length === 0) {
+    invalidPhoneNumbers.value = null; // Limpa as mensagens de erro
+    handleLocalStorage.handleCanClick(false)
+    return;
+  }
+
+  // 2. Se houver dados, validamos normalmente
+  const invalidNumbers = data.filter(number => !phoneValidator(number));
+  if (invalidNumbers.length > 0){
+    invalidPhoneNumbers.value = invalidNumbers;
+    handleLocalStorage.handleCanClick(false)
+  } else {
+    invalidPhoneNumbers.value = null;
+    handleLocalStorage.handleCanClick(true)
+  }
+};
+
+const verifyCanClick  = () => {
+  if (invalidPhoneNumbers.value === null && (fileSelected.fileSelected!== null || (manualContacts.value !== null && manualContacts.value !== ""))){
+    handleLocalStorage.handleCanClick(true)
+  } else { 
+    handleLocalStorage.handleCanClick(false)
+  }
+}
+
 onMounted(() => {
   fileSelected.loadStore();
   //recuperar os contatos escritos se não tiver arquivo
   //  não teremos uma condicional pois em tese é pra ser impossível colocar um arquivo pq se tiver arquivo adicionado apaga o   texto dos contatos
   manualContacts.value = handleLocalStorage.getItem("manual-contacts"); 
+  //verifica os contatos
+  verifyManualContacts();
+  //verifica se pode passar pra prox parte
+  verifyCanClick();
 });
 </script>
 
 <template>
-  <div class="text-center w-full flex flex-col items-center">
+  <div class="text-center w-full flex flex-col items-center mt-12" v-if="!fileSelected.csvError">
     <span class="mr-1 relative">
       Tabela de contatos enviar (.csv):
       <label for="files-input" class="inline">
@@ -54,11 +112,11 @@ onMounted(() => {
       />
     </span>
     <input
+      ref="fileInput"
       type="file"
-      name="file-contacts"
       id="files-input"
       class="hidden"
-      @change="fileSelected.handleFileChange"
+      @change="handleFileSelected"
       accept=".csv"
     />
     <p class="mt-5">ou</p>
@@ -69,13 +127,25 @@ onMounted(() => {
         Digite os números (separados por vírgula):
       </legend>
       <textarea v-if="fileSelected.fileSelected === null"
-        :class="['w-full p-3 outline-none transition-all duration-200 field-sizing-content resize-none min-h-25 block break-word overflow-hidden max-h-40', fileSelected.fileSelected ? 'placeholder:text-gray-200 text-gray-300' : 'placeholder:text-gray-400 text-gray-600']"
+        :class="['w-full p-3 outline-none transition-all duration-200 field-sizing-content resize-none h-25 block break-word overflow-y-scroll', fileSelected.fileSelected ? 'placeholder:text-gray-200 text-gray-300' : 'placeholder:text-gray-400 text-gray-600']"
         name="numbers"
         id="numbers-input"
-        placeholder="Ex.: 5551991620409, 5551963215478"
+        placeholder="Ex.: 51991620409, 51963215478"
         v-model="manualContacts"
-        @keyup="handleContacts"
+        @input="handleContacts"
+        @focusout="verifyManualContacts"
       />
     </fieldset>
+    <div v-if="invalidPhoneNumbers" class=" w-full *:truncate mt-2 flex flex-col">
+      <span class="text-start">{{ invalidPhoneNumbers.length > 1 ? 'Números incorretos:' : 'Número incorreto:' }} <span class="break-word text-red-600">{{ invalidPhoneNumbers.join(", ") }}</span></span>
+      <p class="text-start mt-2"><strong>Dica:</strong> Digite o ddd. Após digite os números <br> com o 9 na frente</p>
+    </div>
+  </div>
+  <div v-show="fileSelected.csvError" class="flex flex-col items-center w-full bg-white h-[40vh] mt-10">
+    <p class="text-red-600 mt-35 text-center">
+      {{ fileSelected.csvError }}
+    </p>
+    <button class=" text-white mt-30 bg-red-500 rounded-full w-12 cursor-pointer" 
+    @click="fileSelected.cleanCsvPopup">Ok</button>
   </div>
 </template>
