@@ -42,7 +42,7 @@ export const useGloblalLocalStorageHandler = defineStore(
       return localStorage.getItem(key);
     };
 
-    const clearItem = (key: string, input?: HTMLInputElement) => {
+    const clearItem = (key: string, input?: HTMLInputElement | null) => {
       //nesse caso de exclusão, é pq já teve um salvamento, então não precisa verificar a chave fornecida (em tese)
       localStorage.removeItem(key);
       //remove a chave do array de chaves

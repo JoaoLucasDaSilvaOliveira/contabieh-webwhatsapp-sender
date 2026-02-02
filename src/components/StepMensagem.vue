@@ -151,7 +151,7 @@ const cleanMessage = () => {
       <textarea
         :disabled="optionMessage"
         :class="[
-          'w-full p-3 outline-none transition-all duration-200 placeholder:text-gray-400 field-sizing-content resize-none  block break-all overflow-hidden min-h-[100px] overflow-y-scroll',
+          'w-full p-3 outline-none transition-all duration-200 placeholder:text-gray-400 field-sizing-content resize-none  block break-all overflow-hidden min-h-25 overflow-y-scroll',
           fileStoreSelected.fileSelected ? 'max-h-20' : 'max-h-40',
         ]"
         name="custom-message"

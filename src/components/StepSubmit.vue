@@ -4,17 +4,18 @@ import { useMultiStepFormStore } from "@/stores/multiStepForm";
 import { type Store } from "pinia";
 import { useFileAppenderStore } from "@/stores/fileAppender";
 import { useFileSelectedStore } from "@/stores/fileSelected";
-import { useWppStatesStore } from "@/stores/wppStates";
+import { useGloblalLocalStorageHandler } from "@/stores/globalLocalStorageHandler";
 
 const multiStepForm = useMultiStepFormStore();
 const fileSelectedStore = useFileSelectedStore();
 const fileAppenderStore = useFileAppenderStore();
-const wppStates = useWppStatesStore();
+const handleLocalStorage = useGloblalLocalStorageHandler();
 
 const fileSelected = ref<File | null>(null);
 const filesAppended = ref<Array<File> | null>(null);
 const messageToSend = ref<string>("");
 const manualContacts = ref<string>("");
+const intervalBetweenContacts = ref<number>(5)
 
 
 interface LoadbleStore extends Store {
@@ -27,7 +28,17 @@ const loadStoresFromLocalStorage = (stores: LoadbleStore[]) => {
   });
 };
 
+const handleIntervalBetweenContacts = () =>{
+  handleLocalStorage.saveChanges('interval-bet-messages', String(intervalBetweenContacts.value))
+}
+
 onMounted(() => {
+  const intervalBetMsg = handleLocalStorage.getItem('interval-bet-messages');
+  if (intervalBetMsg){
+    intervalBetweenContacts.value = JSON.parse(intervalBetMsg);
+  } else {
+    handleIntervalBetweenContacts();
+  }
   loadStoresFromLocalStorage([fileAppenderStore, fileSelectedStore]);
   fileSelected.value = fileSelectedStore.fileSelected;
   filesAppended.value = fileAppenderStore.filesAppended;
@@ -47,7 +58,7 @@ onMounted(() => {
 <!-- op1 -->
       <fieldset
         v-if="fileSelected"
-        class="w-full min-w-0 border-2 border-gray-300 rounded-lg p-1 hover:border-[#F9B02E] transition-all duration-200  max-h-20"
+        class="w-full min-w-0 border-2 border-gray-300 rounded-lg p-1 hover:border-[#F9B02E] transition-all duration-200  h-20"
       >
         <legend class="px-2 text-sm font-medium text-gray-600">
           Arquivo de contatos
@@ -62,7 +73,7 @@ onMounted(() => {
 <!-- op2 -->
       <fieldset
         v-else
-        class="w-full min-w-0 border-2 border-gray-300 rounded-lg p-2 hover:border-[#F9B02E] transition-all duration-200 overflow-y-scroll max-h-20"
+        class="w-full min-w-0 border-2 border-gray-300 rounded-lg p-2 hover:border-[#F9B02E] transition-all duration-200 overflow-y-scroll h-20"
       >
         <legend class="px-2 text-sm font-medium text-gray-600">
           Contatos a enviar
@@ -73,7 +84,7 @@ onMounted(() => {
       </fieldset>
 <!-- op2 -->
       <fieldset
-        class="w-full border-2 border-gray-300 rounded-lg p-2 hover:border-[#F9B02E] transition-all duration-200 overflow-hidden"
+        class="w-full border-2 border-gray-300 rounded-lg p-2 hover:border-[#F9B02E] transition-all duration-200 overflow-hidden h-25 flex items-center"
       >
         <legend class="px-2 text-sm font-medium text-gray-600">Mensagem</legend>
         <div
@@ -101,9 +112,14 @@ onMounted(() => {
           <p v-else class="flex items-center w-full min-h-15">Nenhum arquivo selecionado</p>
         </div>
       </fieldset>
+      <div class="flex gap-6 mt-5 justify-center">
+        <p>Intervalo entre os envios:</p>
+        <input @change="handleIntervalBetweenContacts" class="w-20" type="range" v-model="intervalBetweenContacts" name="intervalo" min="5" max="30" value="5" step="5">
+        <p class="w-23">{{ intervalBetweenContacts }} segundos</p>
+      </div>
     </div>
     <div>
-      <div class="flex flex-row gap-20 mt-22">
+      <div class="flex flex-row gap-25 mt-4">
         <button
           @click="multiStepForm.backToBeginning"
           class="cursor-pointer inline p-2 hover:bg-red-500 hover:text-white rounded-2xl border-2 border-red-300 transition-all ease duration-300 hover:border-red-500"

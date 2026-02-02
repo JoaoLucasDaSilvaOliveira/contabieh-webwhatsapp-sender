@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import fileSelector from "@/assets/imgs/folder.png";
 import { useFileAppenderStore } from "@/stores/fileAppender";
 import trashCan from "@/assets/imgs/lixeira.png";
 
 const fileAppender = useFileAppenderStore();
-const showArchives = ref<boolean>(true);
-const appendedFiles = ref <HTMLInputElement | null> (null);
+
 
 const handleChangeFile = async (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -20,13 +19,14 @@ const handleChangeFile = async (event: Event) => {
 };
 
 const handleClearAppendedFiles = () =>{
-  fileAppender.cleanAppendedFiles('global-file-option', appendedFiles.value)
+  fileAppender.cleanAppendedFiles('global-file-option')
 }
 
 
 onMounted(() => {
   fileAppender.loadStore();
 });
+
 </script>
 
 <template>
@@ -72,7 +72,7 @@ onMounted(() => {
       <p v-else class="flex items-center justify-center text-center w-full min-h-30">Nenhum arquivo adicionado</p>
     </div>
     <input
-      ref="appendedFiles"
+      :ref="(el) => fileAppender.appendedFiles = (el as HTMLInputElement)"
       type="file"
       name="file-contacts"
       id="files-input"

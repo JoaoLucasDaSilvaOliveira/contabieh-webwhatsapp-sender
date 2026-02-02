@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import StepContato from "@/components/StepContato.vue";
 import StepMensagem from "@/components/StepMensagem.vue";
 import StepAppendArquivo from "@/components/StepAppendArquivo.vue";
-import StepResultados from "@/components/StepResultados.vue";
+import StepEnvio from "@/components/StepEnvio.vue";
 import StepSubmit from "@/components/StepSubmit.vue";
 import { useGloblalLocalStorageHandler } from "./globalLocalStorageHandler";
 
@@ -21,7 +21,7 @@ export const useMultiStepFormStore = defineStore("multiStepForm", () => {
     { position: 1, label: "Mensagem", content: markRaw(StepMensagem) },
     { position: 2, label: "Arquivos", content: markRaw(StepAppendArquivo) },
     { position: 3, label: "Conferir Dados", content: markRaw(StepSubmit) },
-    { position: 4, label: "", content: markRaw(StepResultados) },
+    { position: 4, label: "Envio", content: markRaw(StepEnvio) },
   ];
   const firstStep = 0;
   const lastStep = steps.length - 1;

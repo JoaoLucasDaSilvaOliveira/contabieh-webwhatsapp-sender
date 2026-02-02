@@ -48,7 +48,7 @@
 
 <template>
   <div v-if="isOnChatScreen">
-    <div class="fixed top-[260px] right-333 w-50 align-middle">
+    <div class="fixed top-65 right-333 w-50 align-middle">
       <div class="flex items-center gap-1 text-green-600">
         <button class="w-8 cursor-pointer" @click="handleShowButton">
           <img :src="img" alt="toggle" class="max-w-none w-14 ">

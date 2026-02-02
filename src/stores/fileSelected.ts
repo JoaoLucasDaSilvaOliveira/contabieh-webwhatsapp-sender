@@ -11,6 +11,7 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
   const DEFAULT_KEY = "contacts-file";
   const DEFAULT_FILE_NAME_KEY = "file-name";
   const csvError = ref<string | null> (null);
+  const fileInput = ref<HTMLInputElement>();
 
   const handleFileChange = async (event: Event) => {
     const target = event.target as HTMLInputElement; //pega do evento, o input como um elemento html
@@ -23,7 +24,7 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
     } catch (error){
       csvError.value = String(error);
       handleLocalStorage.clearItem('option-message')
-      cleanSelectedFile(target);
+      cleanSelectedFile();
     }
 
     //salva o arquivo no localStorage em base64
@@ -40,10 +41,14 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
     handleLocalStorage.handleCanClick(true);
   };
 
-  const cleanSelectedFile = (input: HTMLInputElement) => {
-    fileSelected.value = null;
-    handleLocalStorage.clearItem(DEFAULT_KEY, input);
+  const cleanSelectedFile = () => {
+    handleLocalStorage.clearItem(DEFAULT_KEY, fileInput.value);
     handleLocalStorage.clearItem(DEFAULT_FILE_NAME_KEY);
+    if (fileInput.value){
+      fileInput.value.value = '';
+    }
+    fileSelected.value = null;
+    
     handleLocalStorage.handleCanClick(false);
   };
 
@@ -67,5 +72,6 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
     loadStore,
     csvError,
     cleanCsvPopup,
+    fileInput,
   };
 });

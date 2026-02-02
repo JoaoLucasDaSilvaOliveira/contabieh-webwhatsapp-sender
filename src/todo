@@ -11,3 +11,15 @@
     |----|> StepMensagem : feito
     |
     |----|> StepAppendArquivos : arrumar as quebras de texto; não ta mostrando o nome do arquivo de contatos : feito
+
+8 - começar a transicionar do envio mock pro envio real
+  * introdução da lógica
+    - quando iniciar o componente, resgatar tudo que precisa do localStorage
+    - verificar se tem arquivos globais, se tiver importar na store : feito
+    - verificar se tem arquivo .csv e importar os dados com a classe CsvReader --\ : feito
+                                                                                  |----|> ambos tem que checar e e importar mensagem personalizada
+    - se não tiver, pegar os números manuais as informações de dados ------------/
+    - modificar a fç startWppService() pra receber parâmetros que fazem sentido pro sistema e fazer as verificações necessárias
+
+9 - arrumar a limpeza do input de append files, não consigo colocar o mesmo arquivo depois de excluí-lo
+

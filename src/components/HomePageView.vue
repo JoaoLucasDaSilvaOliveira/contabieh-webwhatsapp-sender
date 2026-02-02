@@ -37,7 +37,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex min-h-[100vh] mr-1">
+  <div class="flex min-h-screen mr-1">
     <aside
       :class="[
         'transition-all duration-500 ease-in-out overflow-hidden shrink-0 bg-[rgb(25,25,112)] border-r flex flex-col items-center text-white',
@@ -68,9 +68,9 @@ onMounted(() => {
         <p>Enviador de mensagens em massa</p>
       </header>
 
-      <div class="w-full flex gap-1 justify-start items-center">
+      <div class="w-full flex gap-1 justify-start items-center" v-if="multiStepForm.currentStep.position!== 4">
         <div 
-          :class="['group flex text-[#191970] gap-1 justify-center items-center cursor-pointer transition-all duration-600 hover:text-[#fdc700]', multiStepForm.currentStep.position === 0 ? 'underline' : '']"
+          :class="['group flex text-[#191970] gap-1 justify-center items-center cursor-pointer transition-all duration-600 hover:text-[#fdc700]']"
           @click="multiStepForm.backToBeginning"
         >
           <div class="relative w-5 h-5 -mt-0.5">
@@ -83,19 +83,15 @@ onMounted(() => {
               class="absolute inset-0 w-full h-full opacity-0 transition-opacity duration-600 group-hover:opacity-100"
             >
           </div>
-          <p>Início</p>
         </div>
-
-        <p class="text-[#191970]">{{ multiStepForm.currentStep.position > 0 ? '/' : '' }}</p>
-
         <p 
           class="group break-normal text-[#191970] transition-all duration-600 hover:text-[#fdc700]" 
           v-for="(step, index) in multiStepForm.steps" 
           :key="index"
         >
-          <span :class="['cursor-pointer', index === multiStepForm.currentStep.position-1 ? 'underline' : '']" @click="multiStepForm.goTo(index+1)">{{ step.position < multiStepForm.currentStep.position ? step.label : ''}}</span> 
+          <span :class="['cursor-pointer', index === multiStepForm.currentStep.position ? 'underline' : '']" @click="multiStepForm.goTo(index)">{{ step.position <= multiStepForm.currentStep.position ? step.label : ''}}</span> 
           <span class="text-[#191970]">
-            {{ step.position < multiStepForm.currentStep.position-1 ? ' /' :'' }}
+            {{ step.position < multiStepForm.currentStep.position ? ' /' :'' }}
           </span>
         </p>
       </div>
@@ -123,7 +119,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex gap-2 flex-row">
+      <div class="flex gap-2 flex-row relative">
         <div 
         :class="[
           'w-2 h-2 border border-solid border-[#EE2B09] rounded-full transition-all durantion-700 ease', 

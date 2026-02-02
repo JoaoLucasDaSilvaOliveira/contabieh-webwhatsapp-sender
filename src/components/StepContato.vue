@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useFileSelectedStore } from "@/stores/fileSelected";
 import fileSelector from "@/assets/imgs/folder.png";
 import trashCan from "@/assets/imgs/lixeira.png";
@@ -10,18 +10,13 @@ const fileSelected = useFileSelectedStore();
 const manualContacts = ref<string | null>(null);
 const handleLocalStorage = useGloblalLocalStorageHandler();
 const invalidPhoneNumbers = ref<string[] | null> ();
-const fileInput = ref<HTMLInputElement | null>(null);
 
 const handleCleanSelectedFile = () => {
   handleLocalStorage.clearItem('option-message');
 
   // Acessamos via .value
-  if (fileInput.value) {
-    fileInput.value.value = ''; 
-    fileSelected.cleanSelectedFile(fileInput.value);
-    handleLocalStorage.handleCanClick(false)
-  }
-
+  fileSelected.cleanSelectedFile();
+  handleLocalStorage.handleCanClick(false)
 };
 
 const handleContacts = () => {
@@ -112,7 +107,7 @@ onMounted(() => {
       />
     </span>
     <input
-      ref="fileInput"
+      :ref="(el) => fileSelected.fileInput = (el as HTMLInputElement)"
       type="file"
       id="files-input"
       class="hidden"
