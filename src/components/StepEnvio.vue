@@ -2,7 +2,7 @@
     import { onMounted, onUnmounted, ref } from "vue";
     import { useMultiStepFormStore } from "@/stores/multiStepForm";
     import { useWppStatesStore } from "@/stores/wppStates";
-    import { WppService } from "@/services/WppServices/mock/WppTesting";
+    import { WppService } from "@/services/WppServices/WppService";
     import { useFileSelectedStore } from "@/stores/fileSelected";
     import { useFileAppenderStore } from "@/stores/fileAppender";
     import { useGloblalLocalStorageHandler } from "@/stores/globalLocalStorageHandler";

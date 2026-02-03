@@ -1,119 +1,170 @@
-import { useFileSelectedStore } from "@/stores/fileSelected";
-import { CsvReader } from "@/services/WppServices/CsvReader/CsvReaderImpl";
+import type { ContatosEmCSV } from '@/services/WppServices/CsvReader/CsvReaderInterface'
 import { useWppStatesStore } from "@/stores/wppStates";
-import { checkWppConnection } from "./WppConnectionChecker";
-import { wppPhoneChecker } from "./checkWppPhoneNumber";
-import { ref } from "vue";
-import type { ContatosEmCSV } from "./CsvReader/CsvReaderInterface";
-import { useFileAppenderStore } from "@/stores/fileAppender";
+import { useGloblalLocalStorageHandler } from "@/stores/globalLocalStorageHandler";
 import { sendFile } from "./WppFileSender";
 import { sendText } from "./WppTextSender";
 
-const startWppService = async () => {
-  const fileSelectedStore = useFileSelectedStore();
-  const wppStates = useWppStatesStore();
-  const fileAppender = useFileAppenderStore();
-  const contatos = ref<ContatosEmCSV[]>([]);
-  //TODO:
-  //IMPLEMENTAÇÕES:
-  //1 - VALIDAR OS NÚMEROS E COLOCAR O @c.us
-  if (fileSelectedStore.fileSelected !== null) {
-    try {
-      const contatosObj = await CsvReader.validateAndParse(
-        fileSelectedStore.fileSelected,
-      );
-      contatosObj.forEach((contato) => contatos.value.push(contato));
-    } catch (error) {
-      throw error;
-    }
-  }
-  //2 - CHECAR CONEXÃO COM O WPP
-  try {
-    await checkWppConnection();
-  } catch (e) {
-    throw e;
-  }
-  //3 - VERIFICAR SE O NRO EXISTE no WPP
-  const result = await wppPhoneChecker(contatos.value);
-  if (result.error) {
-    throw new Error(
-      result.numerosInexistentes!.length > 1
-        ? `Números incorretos: ${result.numerosInexistentes}`
-        : `Número incorreto: ${result.numerosInexistentes}`,
-    );
-  }
-  //atribuindo o wid real do numero
-  contatos.value = result.contatosComWid!;
-  contatos.value.forEach((contato) => {
-    console.log(contato);
-  });
-  //4 - ENVIAR MENSAGENS E/OU ARQUIVOS
-  // 1 - caso: tem mensagem e tem arquivo
-  if (fileAppender.hasFileAppended()) {
-    //PARA CADA UM DOS CONTATOS, ENVIAMOS
-    let indexContato = 0;
-    for (const contato of contatos.value) {
-      //PARA CADA UM DOS ARQUIVOS, ENVIAMOS
-      for (let i = 0; i < fileAppender.filesAppended.length; i++) {
-        //mostrando na tela o estado pré-envio
-        wppStates.handleActualAction([
-          `Enviando mensagem para: ${contato.nome}`,
-          `Preparando para enviar arquivo: ${fileAppender.filesAppended[i]?.name}`,
-          `Arquivo ${i + 1} de ${fileAppender.filesAppended.length}`,
-          `Contato ${indexContato + 1} de ${contatos.value.length}`,
-        ]);
-        //mandamos a mensagem apenas na primeira vez
-        try {
-          await sendFile(
-            contato.telefone,
-            fileAppender.filesAppended[i]!,
-            fileAppender.filesAppended[i]!.name,
-            i > 0 ? "" : contato.mensagem,
-          );
-          //mostrando na tela o estado pós-envio
-          wppStates.handleActualAction([
-            `Enviando mensagem para: ${contato.nome}`,
-            `Arquivo enviado com sucesso: ${fileAppender.filesAppended[i]?.name}`,
-            `${i + 1} de ${fileAppender.filesAppended.length}`,
-            `Contato ${indexContato + 1} de ${contatos.value.length}`,
-          ]);
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          await wppStates.handleError(message);
+export class WppService {
+
+    /**
+     * 
+     * @param contatos Array do tipo ContatosEmCSV que esperamos receber. Nâo pode ser nulo
+     * @param arquivos Arquivo(s) que serão enviados. Não pode ser nulo
+     * @param manualMessage Mensagem manual que substiui a mensagem do array Contatos
+     */
+    static sendMessagesAndFiles = async (contatos: ContatosEmCSV[], arquivos: File[], interval: number, manualMessage?: string) => {
+        const wppStates = useWppStatesStore();
+        //resetar a opção de parar o envio de mensagens
+        wppStates.resetAbort();
+        if (contatos === null || arquivos=== null) return
+        const regex = /^(\d+)\s*-\s*(.*)/
+        const existeArquivoGlobal = !arquivos.every(arquivo => arquivo.name.match(regex));
+        if (!existeArquivoGlobal && contatos.every(contato => contato.id_empresa !== '-1')){
+            const idsArquivos = arquivos.map(arquivo => {
+                return arquivo.name.match(regex)![1]
+            })
+            const filteredContatos = contatos.filter(contato => idsArquivos.includes(contato.id_empresa));
+            contatos = filteredContatos // crio uma nova lista de contatos apenas com quem tem arquivos pra enviar
         }
-        await sleep(250);
-      }
-      await sleep(5000);
-      indexContato++;
-    }
-  } else {
-    // 2 - caso: apenas mensagem de texto
-    let indexContato = 0;
-    for (const contato of contatos.value) {
-      wppStates.handleActualAction([
-        `Enviando mensagem para: ${contato.nome}`,
-        `Contato ${indexContato + 1} de ${contatos.value.length}`,
-      ]);
-      try {
-        await sendText(contato.telefone, contato.mensagem);
-        wppStates.handleActualAction([
-          `Mensagem enviada com sucesso para ${contato.nome}`,
-          `Contato ${indexContato + 1} de ${contatos.value.length}`,
-        ]);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        await wppStates.handleError(message);
-      } finally {
-        await sleep(5000);
-        indexContato++;
-      }
-    }
-  }
-};
+        wppStates.totalContatos = contatos.length;
+        wppStates.contatosFaltantes = contatos.length;
+        for (const contato of contatos){
+            if (wppStates.isAborted) {
+                wppStates.contatosFaltantes = 0;
+                wppStates.totalContatos = 0;
+                wppStates.arquivosFaltantes = 0;
+                wppStates.totalArquivos = 0;
+                wppStates.cleanActualFile()
+                wppStates.cleanActualAction()
+                await wppStates.handlePopupMessage('Envio cancelado pelo usuário', 2000);
+                return;
+            }
+            let arrayTempArquivos: File[] = [];
+            if (contato.id_empresa === '-1'){
+                arrayTempArquivos = arquivos;
+            } else {
+                if (existeArquivoGlobal){
+                    const arquivosGlobais = arquivos.filter(arquivo => !arquivo.name.match(regex))
+                    arquivosGlobais.forEach(arqGlob => arrayTempArquivos.push(arqGlob))
+                }
+                const arquivosFiltered = arquivos.filter(arquivo => {
+                    const match = arquivo.name.match(regex)
+                    if (match && match[1]){
+                        const idArquivo = match[1]
+                        if (idArquivo === contato.id_empresa){
+                            return idArquivo;
+                        }
+                    }
+                })
+                arquivosFiltered.forEach(arq => arrayTempArquivos.push(arq))
+            }
+            wppStates.totalArquivos = arrayTempArquivos.length;
+            wppStates.arquivosFaltantes = arrayTempArquivos.length;
+            if (wppStates.contatosFaltantes === contatos.length){
+                await wppStates.handlePopupMessage('Iniciando envio!@Contabiehl Sender since 2026', 2000)
+            }
+            wppStates.handleActualAction(`Enviando mensagem para: ${contato.nome} (${contato.telefone})`)
+            for (const arquivo of arrayTempArquivos){
+                if (wppStates.isAborted) {
+                    wppStates.contatosFaltantes = 0;
+                    wppStates.totalContatos = 0;
+                    wppStates.arquivosFaltantes = 0;
+                    wppStates.totalArquivos = 0;
+                    wppStates.cleanActualFile()
+                    wppStates.cleanActualAction()
+                    await wppStates.handlePopupMessage('Envio cancelado pelo usuário', 2000);
+                    return;
+                }   
+                wppStates.handleActualFile(`Enviando arquivo: ${arquivo.name}`)
+                wppStates.handleActualFile(`Legenda: ${manualMessage ? manualMessage : contato.mensagem}`)
+                await this.sleep(3000);
+                try{
+                    await sendFile(contato.nome, arquivo, arquivo.name, manualMessage ? manualMessage : contato.mensagem);
+                    wppStates.cleanActualFile();
+                    wppStates.handleActualFile(`Arquivo enviado com sucesso: ${arquivo.name}`)
+                    wppStates.arquivosFaltantes--
+                    if (wppStates.arquivosFaltantes === 0){
+                        wppStates.cleanActualFile();
+                        wppStates.cleanActualAction();
+                        await wppStates.handlePopupMessage(`Todos os arquivos foram enviados para ${contato.nome}`, 2000)
+                        wppStates.arquivosFaltantes = wppStates.totalArquivos;
+                    } else {
+                        await wppStates.handlePopupMessage(`Próximo arquivo em {sec}s` , interval)
+                    }
+                    wppStates.cleanActualFile();
+                } catch(error){
+                    wppStates.cleanActualFile();
+                    wppStates.cleanActualAction();
+                    await wppStates.handleError(String(error));
+                }
+            }
+            wppStates.cleanActualAction();
+            wppStates.contatosFaltantes--
+            if (wppStates.contatosFaltantes === 0){
+                await wppStates.handlePopupMessage('Envio finalizado', 2000)
+                wppStates.totalContatos = 0;
+                wppStates.totalArquivos = 0;
+                
+            } else {
+                await wppStates.handlePopupMessage(`Próximo contato em {sec}s`, interval)
+            }
+        }
+    };
 
-const sleep = async (ms: number) => {
-  return new Promise((res) => setTimeout(res, ms));
-};
+    /**
+     * 
+     * @param contatos Array do tipo ContatosEmCSV que esperamos receber. Nâo pode ser nulo
+     * @param manualMessage Mensagem manual que substiui a mensagem do array Contatos 
+     */
+    static sendMessages = async (contatos: ContatosEmCSV[] | {nome: string, telefone: string, mensagem: string}[], interval : number, manualMessage?: string) => {
+        const wppStates = useWppStatesStore();
+        //resetar a opção de parar o envio de mensagens
+        wppStates.resetAbort();
+        if (contatos === null) return
+        wppStates.contatosFaltantes = contatos.length;
+        for (const contato of contatos){
+            if (wppStates.isAborted) {
+                wppStates.contatosFaltantes = 0;
+                wppStates.totalContatos = 0;
+                wppStates.cleanActualAction()
+                await wppStates.handlePopupMessage('Envio cancelado pelo usuário', 2000);
+                return;
+            }
+            if (wppStates.contatosFaltantes === contatos.length){
+                await wppStates.handlePopupMessage('Iniciando envio!\n@Contabiehl Sender since 2026', 2000)
+                wppStates.totalContatos = contatos.length;
+            }
+            wppStates.handleActualAction(`Enviando mensagem para: ${contato.nome}`)
+            wppStates.handleActualAction(`Número: ${contato.telefone}`)
+            wppStates.handleActualAction(`Conteúdo da mensagem: ${manualMessage ? manualMessage : contato.mensagem}`)
+            await this.sleep(3000);
+            try{
+                await sendText(contato.telefone, manualMessage ? manualMessage : contato.mensagem)
+                wppStates.cleanActualAction();
+                wppStates.handleActualAction(`Mensagem enviada com sucesso para ${contato.nome}`);
+                await this.sleep(3000);
+                wppStates.contatosFaltantes--;
+            } catch (error){
+                wppStates.cleanActualAction();
+                await wppStates.handleError(String(error));
+            } finally{
+                if (wppStates.contatosFaltantes === 0){
+                    wppStates.cleanActualAction();
+                    await wppStates.handlePopupMessage('Envio finalizado', 2000)
+                    wppStates.totalContatos = 0;
+                } else {
+                    await wppStates.handlePopupMessage('Próximo envio em {sec}s', interval)
+                }
+                wppStates.cleanActualAction();
+            }
+        }
+    }
 
-export default startWppService;
+    static sleep (ms: number){
+        return new Promise<void> ((res)=>{
+            setTimeout(()=>{
+                res()
+            }, ms)
+        })
+    }
+}
