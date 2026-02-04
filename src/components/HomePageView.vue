@@ -12,7 +12,6 @@ const isAsideOpen = ref<boolean>(true);
 const multiStepForm = useMultiStepFormStore();
 const handleLocalStorage = useGloblalLocalStorageHandler();
 const fileSelected = useFileSelectedStore();
-const homeIco = ref(defHomeIco);
 
 const toggleAside = () => {
   isAsideOpen.value = !isAsideOpen.value;

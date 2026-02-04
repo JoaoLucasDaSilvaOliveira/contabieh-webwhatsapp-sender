@@ -5,7 +5,7 @@
 
 
   const img = ref<string>(zapLogoRedonda)
-  const showExtension = ref<boolean>(true)
+  const showExtension = ref<boolean>(false)
   const isOnChatScreen = ref<boolean>(true)
   let screenCheckInterval: any | null = null
   
@@ -34,7 +34,7 @@
     }
   }
 
-  // LIFECYCLE
+  // // LIFECYCLE
   // onMounted(() => {
   //   // Verifica imediatamente
   //   checkScreen();
@@ -47,14 +47,14 @@
 </script>
 
 <template>
-  <div v-if="isOnChatScreen">
-    <div class="fixed top-65 right-333 w-50 align-middle">
-      <div class="flex items-center gap-1 text-green-600">
-        <button class="w-8 cursor-pointer" @click="handleShowButton">
-          <img :src="img" alt="toggle" class="max-w-none w-14 ">
-        </button>
-      </div>
+  <div class="fixed top-65 left-1 w-50 align-middle">
+    <div class="flex items-center gap-1 text-green-600">
+      <button class="w-8 cursor-pointer" @click="handleShowButton">
+        <img :src="img" alt="toggle" class="max-w-none w-14 ">
+      </button>
     </div>
+  </div>
+  <div v-if="isOnChatScreen">
     <RouterView v-show="showExtension"/>
   </div>
 </template>
