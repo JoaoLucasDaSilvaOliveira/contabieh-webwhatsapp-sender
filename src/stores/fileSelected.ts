@@ -14,31 +14,38 @@ export const useFileSelectedStore = defineStore("fileSelected", () => {
   const fileInput = ref<HTMLInputElement>();
 
   const handleFileChange = async (event: Event) => {
-    const target = event.target as HTMLInputElement; //pega do evento, o input como um elemento html
-    if (target.files && target.files.length > 0) {
-      fileSelected.value = target.files[0]!;
-    }
-    //VERIFICAMOS O ARQUIVO .CSV
-    try{
-      await CsvReader.validateAndParse(fileSelected.value!)
-    } catch (error){
+    const target = event.target as HTMLInputElement;
+    if (!target.files || target.files.length === 0) return;
+
+    // 1. Atribui o arquivo primeiro
+    fileSelected.value = target.files[0]!;
+
+    // 2. Tenta validar
+    try {
+      await CsvReader.validateAndParse(fileSelected.value);
+    } catch (error) {
       csvError.value = String(error);
-      handleLocalStorage.clearItem('option-message')
+      handleLocalStorage.clearItem('option-message');
       cleanSelectedFile();
+      return; // INTERROMPE aqui para não tentar ler o Base64 de algo nulo
     }
 
-    //salva o arquivo no localStorage em base64
-    const base64Maker = new FileReader();
-    base64Maker.onload = (file) => {
-      const base64File = file.target?.result as string;
-      handleLocalStorage.saveChanges(DEFAULT_KEY, base64File);
-    };
-    base64Maker.readAsDataURL(fileSelected.value as Blob);
-    handleLocalStorage.saveChanges(
-      DEFAULT_FILE_NAME_KEY,
-      fileSelected.value?.name!
-    );
-    handleLocalStorage.handleCanClick(true);
+    // 3. Só prossegue se o arquivo for válido e existir
+    if (fileSelected.value) {
+      const base64Maker = new FileReader();
+      base64Maker.onload = (file) => {
+        const base64File = file.target?.result as string;
+        handleLocalStorage.saveChanges(DEFAULT_KEY, base64File);
+      };
+      
+      base64Maker.readAsDataURL(fileSelected.value); // Removido o 'as Blob' desnecessário
+      
+      handleLocalStorage.saveChanges(
+        DEFAULT_FILE_NAME_KEY,
+        fileSelected.value.name
+      );
+      handleLocalStorage.handleCanClick(true);
+    }
   };
 
   const cleanSelectedFile = () => {

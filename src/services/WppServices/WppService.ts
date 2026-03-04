@@ -87,8 +87,8 @@ export class WppService {
       wppStates.handleActualAction(
         `Enviando mensagem para: ${contato.nome} (${contato.telefone})`,
       );
-      const telefoneParseado = await wppPhoneChecker(contato.telefone);
       try {
+        const telefoneParseado = await wppPhoneChecker(contato.telefone);
         wppStates.handleActualAction(
           `Conteúdo da mensagem: ${manualMessage ? manualMessage : contato.mensagem}`,
         );
@@ -124,6 +124,7 @@ export class WppService {
         wppStates.handleActualFile(`Enviando arquivo: ${arquivo.name}`);
         await this.sleep(3000);
         try {
+          const telefoneParseado = await wppPhoneChecker(contato.telefone);
           await checkWppConnection();
           await sendFile(telefoneParseado, arquivo, arquivo.name);
           wppStates.cleanActualFile();

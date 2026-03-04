@@ -1,21 +1,15 @@
-import { loadWppLibrary } from "./WppLoader/WppLoaderService";
+import { EVO_CONFIG } from './EvolutionConfig';
 
-export const checkWppConnection = async () => {
-  try {
-    // 1. Tenta injetar/carregar a biblioteca primeiro
-    await loadWppLibrary();
-    // 2. Verifica se o WPP está pronto de fato
-    if (!window.WPP || !window.WPP.webpack.isReady) {
-      throw new Error('WPPConnect carregou mas não está pronto.');
+export const checkWppConnection = async (): Promise<boolean> => {
+    try {
+        const response = await fetch(`${EVO_CONFIG.baseUrl}/instance/connectionState/${EVO_CONFIG.instance}`, {
+            method: 'GET',
+            headers: { 'apikey': EVO_CONFIG.apikey }
+        });
+        
+        const data = await response.json();
+        return data.instance?.state === 'open';
+    } catch (e) {
+        return false;
     }
-
-    // 3. Verifica se o usuário está logado no WhatsApp
-    if (!window.WPP.conn.isAuthenticated()) {
-      throw new Error('Usuário não está logado no WhatsApp Web.');
-    }
-
-    return true;
-  } catch (e) {
-    throw e; // Repassa o erro para ser tratado na UI
-  }
 }

@@ -1,6 +1,6 @@
 export const phoneValidator = (number: string):boolean =>{
 
-    const phoneRegex = /^\d{2}\s?9\d{8}$/;
+    const phoneRegex = /^\d{4}\s?9\d{8}$/;
     
     const invalidNumbers: string[] = [];
 

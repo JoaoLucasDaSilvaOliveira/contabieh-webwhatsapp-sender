@@ -12,19 +12,18 @@ const handleChangeFile = async (event: Event) => {
 
   if (target.files && target.files.length > 0) {
     const filesArray = Array.from(target.files!);
-    filesArray.forEach((file) => {
-      fileAppender.appendFile(file);
-    });
+    for (const file of filesArray) {
+      await fileAppender.appendFile(file); // Agora tem await
+    }
   }
 };
 
-const handleClearAppendedFiles = () =>{
-  fileAppender.cleanAppendedFiles('global-file-option')
+const handleClearAppendedFiles = async () => {
+  await fileAppender.cleanAppendedFiles(); // Removemos o argumento da string
 }
 
-
-onMounted(() => {
-  fileAppender.loadStore();
+onMounted(async () => {
+  await fileAppender.loadStore();
 });
 
 </script>

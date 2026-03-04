@@ -1,79 +1,51 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
-import fileToBase64 from "@/components/composables/fromFiletoBase64";
-import { useGloblalLocalStorageHandler } from "./globalLocalStorageHandler";
-import base64ToFile from "@/components/composables/fromBase64toFile";
-
-interface archive {
-  fileName: string;
-  fileInBase64: string;
-}
+import { dbService } from "@/services/Storage/IndexedDbService";
 
 export const useFileAppenderStore = defineStore("fileAppenderStore", () => {
-  const handleLocalStorage = useGloblalLocalStorageHandler();
   const filesAppended = ref<Array<File>>([]);
   const appendedFiles = ref<HTMLInputElement | null>(null);
 
-  const appendFile = (file: File) => {
-    if (
-      filesAppended.value.find(
-        (fileAppended) => fileAppended.name === file.name,
-      )
-    )
-      return;
+  const appendFile = async (file: File) => {
+    // Evita arquivos duplicados pelo nome
+    if (filesAppended.value.find((f) => f.name === file.name)) return;
+    
     filesAppended.value.push(file);
-    saveArchives();
+    
+    // Salva direto no IndexedDB sem Base64
+    try {
+      await dbService.saveFile(file);
+    } catch (e) {
+      console.error("Erro ao salvar no IndexedDB:", e);
+    }
   };
 
   const hasFileAppended = (): boolean => {
-    if (filesAppended.value.length === 0) {
-      return false;
-    }
-    return true;
+    return filesAppended.value.length > 0;
   };
 
-  const cleanAppendedFiles = (key: string) => {
+  const cleanAppendedFiles = async () => {
     if (appendedFiles.value) {
       appendedFiles.value.value = '';
     }
     filesAppended.value = [];
-    handleLocalStorage.clearItem("global-files");
-    handleLocalStorage.clearItem(key);
+    
+    // Limpa o banco de dados
+    try {
+      await dbService.clearAll();
+    } catch (e) {
+      console.error("Erro ao limpar IndexedDB:", e);
+    }
   };
 
-  const saveArchives = async () => {
-    const archives = Array<archive>();
-    for (const file of filesAppended.value) {
-      try {
-        const fileInBase64 = await fileToBase64(file);
-        archives.push({ fileName: file.name, fileInBase64 });
-      } catch (e) {
-        console.log(e);
+  const loadStore = async () => {
+    try {
+      const files = await dbService.getAllFiles();
+      if (files && files.length > 0) {
+        filesAppended.value = files;
       }
-    }
-    if (archives.length > 0) {
-      handleLocalStorage.saveChanges("global-files", JSON.stringify(archives));
-    }
-  };
-
-  /**
-   * Função que pega os arquivos salvos e os carrega no pinia
-   *
-   *  USAR SOMENTE EM ONMOUNTED
-   */
-  const loadStore = () => {
-    //importa os arquivos salvos
-    const savedArchives = handleLocalStorage.getItem("global-files");
-    if (savedArchives) {
-      //checar se há arquivos salvos
-      //nesse caso há arquivo(s) salvos, convertemos a string para um array de arquivos com nome e o arquivo de fato em base64
-      const arrayArchives: Array<archive> = JSON.parse(savedArchives);
-      //agora precisamos converter cada um dos archive em File
-      const arrayFiles: Array<File> = arrayArchives.map((archive) =>
-        base64ToFile(archive.fileInBase64, archive.fileName),
-      );
-      //agora temos o array de arquivos, apenas importamos no pinia
-      filesAppended.value = arrayFiles;
+    } catch (e) {
+      console.error("Erro ao carregar do IndexedDB:", e);
     }
   };
 

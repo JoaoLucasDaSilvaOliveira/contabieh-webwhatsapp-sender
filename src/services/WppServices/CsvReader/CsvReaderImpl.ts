@@ -67,6 +67,9 @@ export class CsvReader {
             } else if (data === undefined) {
               data = "";
             }
+            data = data.trim()
+               .replace(/^"|"$/g, '')
+               .replace(/\\n/g, '\n');
             mapaReferencias.set(headersEntregues![j]!.toLowerCase(), data);
           }
 

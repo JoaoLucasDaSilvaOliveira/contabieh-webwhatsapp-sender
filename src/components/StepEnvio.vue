@@ -23,7 +23,8 @@ import type { ContatosEmCSV } from "@/services/WppServices/CsvReader/CsvReaderIn
         if (!wppStates.isAborted){
             handleLocalStorage.clearAll()
             fileSelected.cleanSelectedFile();
-            fileAppender.cleanAppendedFiles('global-file-option')
+            // CORREÇÃO: Removemos o argumento e colocamos await
+            await fileAppender.cleanAppendedFiles(); 
         }
         await wppStates.handlePopupMessage('Retornando à página inicial em {sec}s', 5000)
         multiStepForm.backToBeginning();
